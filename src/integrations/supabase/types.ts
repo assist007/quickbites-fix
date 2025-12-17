@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          product_id: string | null
+          replied_at: string | null
+          replied_by: string | null
+          reply: string | null
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          product_id?: string | null
+          replied_at?: string | null
+          replied_by?: string | null
+          reply?: string | null
+          subject: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          product_id?: string | null
+          replied_at?: string | null
+          replied_by?: string | null
+          reply?: string | null
+          subject?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -49,6 +96,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          bkash_number: string | null
           created_at: string
           delivered_at: string | null
           delivery_address: string | null
@@ -56,13 +104,17 @@ export type Database = {
           id: string
           items: Json
           notes: string | null
+          payment_method: string | null
+          payment_status: string | null
           phone: string | null
           status: string
           total_amount: number
+          transaction_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          bkash_number?: string | null
           created_at?: string
           delivered_at?: string | null
           delivery_address?: string | null
@@ -70,13 +122,17 @@ export type Database = {
           id?: string
           items?: Json
           notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
           phone?: string | null
           status?: string
           total_amount?: number
+          transaction_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          bkash_number?: string | null
           created_at?: string
           delivered_at?: string | null
           delivery_address?: string | null
@@ -84,9 +140,12 @@ export type Database = {
           id?: string
           items?: Json
           notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
           phone?: string | null
           status?: string
           total_amount?: number
+          transaction_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -135,6 +194,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_restricted: boolean | null
           phone: string | null
           updated_at: string
           username: string | null
@@ -145,6 +205,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          is_restricted?: boolean | null
           phone?: string | null
           updated_at?: string
           username?: string | null
@@ -155,6 +216,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_restricted?: boolean | null
           phone?: string | null
           updated_at?: string
           username?: string | null
