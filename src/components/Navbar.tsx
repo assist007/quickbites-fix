@@ -1,26 +1,49 @@
 import { useState } from "react";
-import { Menu, X, ShoppingBag } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, ShoppingBag, Sun, Moon, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
+import { useStore } from "@/context/StoreContext";
 
-const Navbar = () => {
+interface NavbarProps {
+  setShowLogin: (show: boolean) => void;
+}
+
+const Navbar = ({ setShowLogin }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const { getTotalCartItems } = useStore();
+  const navigate = useNavigate();
+  const cartCount = getTotalCartItems();
 
   const navLinks = [
+    { name: "Home", href: "/" },
     { name: "Menu", href: "#menu" },
     { name: "How it Works", href: "#how-it-works" },
     { name: "About", href: "#about" },
   ];
+
+  const handleNavClick = (href: string) => {
+    setIsOpen(false);
+    if (href.startsWith("#")) {
+      const element = document.querySelector(href);
+      element?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <a href="/" className="flex items-center gap-2">
-            <span className="text-2xl md:text-3xl font-display font-bold text-gradient">
-              QuickBites
+          <Link to="/" className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-xl gradient-hero flex items-center justify-center">
+              <span className="text-xl">🍔</span>
+            </div>
+            <span className="text-xl md:text-2xl font-bold">
+              Quick<span className="text-primary">Bite</span>
             </span>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
@@ -28,6 +51,12 @@ const Navbar = () => {
               <a
                 key={link.name}
                 href={link.href}
+                onClick={(e) => {
+                  if (link.href.startsWith("#")) {
+                    e.preventDefault();
+                    handleNavClick(link.href);
+                  }
+                }}
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium"
               >
                 {link.name}
@@ -35,41 +64,111 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="icon">
-              <ShoppingBag className="h-5 w-5" />
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             </Button>
-            <Button variant="hero">Order Now</Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={() => navigate("/cart")}
+            >
+              <ShoppingBag className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </Button>
+
+            <Button
+              className="gradient-hero text-white"
+              onClick={() => setShowLogin(true)}
+            >
+              <User className="h-4 w-4 mr-2" />
+              Sign In
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2"
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          <div className="flex md:hidden items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={() => navigate("/cart")}
+            >
+              <ShoppingBag className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
+                  {cartCount}
+                </span>
+              )}
+            </Button>
+            <button
+              className="p-2"
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t border-border animate-fade-up">
+          <div className="md:hidden py-4 border-t border-border animate-fade-in">
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <a
                   key={link.name}
                   href={link.href}
+                  onClick={(e) => {
+                    if (link.href.startsWith("#")) {
+                      e.preventDefault();
+                    }
+                    handleNavClick(link.href);
+                  }}
                   className="text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
-                  onClick={() => setIsOpen(false)}
                 >
                   {link.name}
                 </a>
               ))}
-              <Button variant="hero" className="mt-2">
-                Order Now
-              </Button>
+              <div className="flex items-center justify-between pt-4 border-t border-border">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                >
+                  {theme === "dark" ? (
+                    <>
+                      <Sun className="h-4 w-4 mr-2" /> Light
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="h-4 w-4 mr-2" /> Dark
+                    </>
+                  )}
+                </Button>
+                <Button
+                  className="gradient-hero text-white"
+                  size="sm"
+                  onClick={() => {
+                    setIsOpen(false);
+                    setShowLogin(true);
+                  }}
+                >
+                  Sign In
+                </Button>
+              </div>
             </div>
           </div>
         )}
