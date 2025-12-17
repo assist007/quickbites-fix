@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { StoreContextProvider } from "@/context/StoreContext";
+import { AuthProvider } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import LoginPopup from "@/components/LoginPopup";
@@ -22,27 +23,29 @@ const App = () => {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <QueryClientProvider client={queryClient}>
-        <StoreContextProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              {showLogin && <LoginPopup setShowLogin={setShowLogin} />}
-              <div className="min-h-screen flex flex-col">
-                <Navbar setShowLogin={setShowLogin} />
-                <div className="flex-1">
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/cart" element={<Cart />} />
-                    <Route path="/order" element={<PlaceOrder />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
+        <AuthProvider>
+          <StoreContextProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                {showLogin && <LoginPopup setShowLogin={setShowLogin} />}
+                <div className="min-h-screen flex flex-col">
+                  <Navbar setShowLogin={setShowLogin} />
+                  <div className="flex-1">
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/cart" element={<Cart />} />
+                      <Route path="/order" element={<PlaceOrder />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </div>
+                  <Footer />
                 </div>
-                <Footer />
-              </div>
-            </BrowserRouter>
-          </TooltipProvider>
-        </StoreContextProvider>
+              </BrowserRouter>
+            </TooltipProvider>
+          </StoreContextProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );
