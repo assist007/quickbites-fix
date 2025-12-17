@@ -14,10 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      notifications: {
+        Row: {
+          created_at: string
+          data: Json | null
+          id: string
+          is_read: boolean
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          is_read?: boolean
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          id?: string
+          is_read?: boolean
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           created_at: string
+          delivered_at: string | null
           delivery_address: string | null
+          delivery_person_id: string | null
           id: string
           items: Json
           notes: string | null
@@ -29,7 +64,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          delivered_at?: string | null
           delivery_address?: string | null
+          delivery_person_id?: string | null
           id?: string
           items?: Json
           notes?: string | null
@@ -41,7 +78,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          delivered_at?: string | null
           delivery_address?: string | null
+          delivery_person_id?: string | null
           id?: string
           items?: Json
           notes?: string | null
@@ -50,6 +89,42 @@ export type Database = {
           total_amount?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_available: boolean
+          name: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          name: string
+          price?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean
+          name?: string
+          price?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -122,7 +197,7 @@ export type Database = {
       make_user_admin_by_email: { Args: { _email: string }; Returns: undefined }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "staff" | "delivery_boy"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -250,7 +325,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "staff", "delivery_boy"],
     },
   },
 } as const

@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, ShoppingBag, Sun, Moon, User, LogOut, Package, Settings, Shield } from "lucide-react";
+import { Menu, X, ShoppingBag, Sun, Moon, User, LogOut, Package, Settings, Shield, Truck, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { useStore } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { useStaffCheck, useDeliveryCheck } from "@/hooks/useRoleCheck";
+import { NotificationBell } from "@/components/NotificationBell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +26,8 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
   const { getTotalCartItems } = useStore();
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminCheck();
+  const { hasRole: isStaff } = useStaffCheck();
+  const { hasRole: isDelivery } = useDeliveryCheck();
   const navigate = useNavigate();
   const cartCount = getTotalCartItems();
 
@@ -91,6 +95,8 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
               <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             </Button>
 
+            {user && <NotificationBell />}
+
             <Button
               variant="ghost"
               size="icon"
@@ -127,9 +133,27 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                     Order History
                   </DropdownMenuItem>
                   {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate('/admin')}>
-                      <Shield className="h-4 w-4 mr-2" />
-                      Admin Dashboard
+                    <>
+                      <DropdownMenuItem onClick={() => navigate('/admin')}>
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/admin/products')}>
+                        <Package className="h-4 w-4 mr-2" />
+                        Product Management
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {isStaff && (
+                    <DropdownMenuItem onClick={() => navigate('/staff')}>
+                      <Users className="h-4 w-4 mr-2" />
+                      Staff Dashboard
+                    </DropdownMenuItem>
+                  )}
+                  {isDelivery && (
+                    <DropdownMenuItem onClick={() => navigate('/delivery')}>
+                      <Truck className="h-4 w-4 mr-2" />
+                      Delivery Dashboard
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
