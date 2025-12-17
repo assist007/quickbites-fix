@@ -1,69 +1,75 @@
-import { MapPin, CreditCard, Truck } from "lucide-react";
+import { Search, ShoppingBag, Truck, Utensils } from "lucide-react";
 
 const steps = [
   {
-    icon: MapPin,
-    title: "Choose Location",
-    description: "Enter your delivery address and find nearby restaurants.",
+    icon: Search,
+    title: "Browse Menu",
+    description: "Explore our wide variety of delicious dishes from different cuisines.",
+    color: "text-primary",
+    bgColor: "bg-primary/10",
   },
   {
-    icon: CreditCard,
+    icon: ShoppingBag,
     title: "Place Order",
-    description: "Browse menus, add items to cart, and checkout securely.",
+    description: "Add your favorite items to cart and checkout securely.",
+    color: "text-warning",
+    bgColor: "bg-warning/10",
   },
   {
     icon: Truck,
     title: "Fast Delivery",
-    description: "Track your order in real-time as it arrives at your door.",
+    description: "Our riders will deliver your food hot and fresh to your doorstep.",
+    color: "text-success",
+    bgColor: "bg-success/10",
+  },
+  {
+    icon: Utensils,
+    title: "Enjoy Food",
+    description: "Sit back, relax and enjoy your delicious meal with loved ones.",
+    color: "text-destructive",
+    bgColor: "bg-destructive/10",
   },
 ];
 
 const HowItWorks = () => {
   return (
-    <section id="how-it-works" className="py-20 md:py-28 bg-background">
+    <section id="how-it-works" className="py-16 md:py-24 bg-accent/30">
       <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-12 md:mb-16">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-secondary text-primary text-sm font-medium mb-4">
-            Simple Process
-          </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-foreground mb-4">
-            How It Works
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            How It <span className="text-primary">Works</span>
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Getting your favorite food delivered has never been easier. 
-            Just three simple steps.
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Get your favorite food delivered in just 4 simple steps
           </p>
         </div>
 
-        {/* Steps */}
-        <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {steps.map((step, index) => (
             <div
               key={step.title}
-              className="relative text-center animate-fade-up"
-              style={{ animationDelay: `${index * 0.15}s` }}
+              className="relative group"
             >
-              {/* Connector Line */}
+              {/* Connector line */}
               {index < steps.length - 1 && (
-                <div className="hidden md:block absolute top-12 left-1/2 w-full h-0.5 bg-gradient-to-r from-primary/50 to-primary/10" />
+                <div className="hidden lg:block absolute top-12 left-1/2 w-full h-0.5 bg-border" />
               )}
 
-              {/* Icon */}
-              <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-2xl gradient-primary shadow-lg mb-6">
-                <step.icon className="h-10 w-10 text-primary-foreground" />
-                <span className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-accent text-accent-foreground text-sm font-bold flex items-center justify-center">
+              <div className="relative bg-card rounded-2xl p-6 text-center border border-border hover:border-primary/50 hover:shadow-large transition-all duration-300 group-hover:-translate-y-2">
+                {/* Step number */}
+                <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center">
                   {index + 1}
-                </span>
-              </div>
+                </div>
 
-              {/* Content */}
-              <h3 className="text-xl font-display font-semibold text-foreground mb-3">
-                {step.title}
-              </h3>
-              <p className="text-muted-foreground max-w-xs mx-auto">
-                {step.description}
-              </p>
+                {/* Icon */}
+                <div className={`w-16 h-16 ${step.bgColor} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                  <step.icon className={`h-8 w-8 ${step.color}`} />
+                </div>
+
+                {/* Content */}
+                <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
+                <p className="text-sm text-muted-foreground">{step.description}</p>
+              </div>
             </div>
           ))}
         </div>

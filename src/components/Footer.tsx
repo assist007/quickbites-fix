@@ -1,38 +1,56 @@
-import { Facebook, Twitter, Instagram, Youtube } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react";
 
 const Footer = () => {
   return (
-    <footer id="about" className="bg-foreground text-primary-foreground py-16">
-      <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-4 gap-12 mb-12">
+    <footer id="contact" className="bg-foreground text-background">
+      <div className="container mx-auto px-4 py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
           {/* Brand */}
-          <div className="md:col-span-1">
-            <h3 className="text-2xl font-display font-bold text-gradient mb-4">
-              QuickBites
-            </h3>
-            <p className="text-primary-foreground/70 mb-6">
-              Delicious food delivered fast. Your favorite meals, just a tap away.
+          <div className="space-y-4">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl gradient-hero flex items-center justify-center">
+                <span className="text-xl">🍔</span>
+              </div>
+              <span className="text-2xl font-bold">
+                Quick<span className="text-primary">Bite</span>
+              </span>
+            </Link>
+            <p className="text-background/70 text-sm">
+              Order your favourite food from the best restaurants near you. Fast delivery, great prices.
             </p>
-            <div className="flex gap-4">
-              {[Facebook, Twitter, Instagram, Youtube].map((Icon, index) => (
-                <a
-                  key={index}
-                  href="#"
-                  className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary transition-colors"
-                >
-                  <Icon className="h-5 w-5" />
-                </a>
-              ))}
+            <div className="flex gap-3">
+              <a
+                href="#"
+                className="w-10 h-10 rounded-full bg-background/10 hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
+              >
+                <Facebook className="h-5 w-5" />
+              </a>
+              <a
+                href="#"
+                className="w-10 h-10 rounded-full bg-background/10 hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
+              >
+                <Instagram className="h-5 w-5" />
+              </a>
+              <a
+                href="#"
+                className="w-10 h-10 rounded-full bg-background/10 hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
+              >
+                <Twitter className="h-5 w-5" />
+              </a>
             </div>
           </div>
 
-          {/* Links */}
+          {/* Quick Links */}
           <div>
-            <h4 className="font-semibold mb-4">Company</h4>
+            <h3 className="font-bold text-lg mb-4">Quick Links</h3>
             <ul className="space-y-3">
-              {["About Us", "Careers", "Blog", "Press"].map((link) => (
+              {["Home", "Menu", "About Us", "Contact"].map((link) => (
                 <li key={link}>
-                  <a href="#" className="text-primary-foreground/70 hover:text-primary transition-colors">
+                  <a
+                    href="#"
+                    className="text-background/70 hover:text-primary transition-colors text-sm"
+                  >
                     {link}
                   </a>
                 </li>
@@ -40,12 +58,16 @@ const Footer = () => {
             </ul>
           </div>
 
+          {/* Support */}
           <div>
-            <h4 className="font-semibold mb-4">Support</h4>
+            <h3 className="font-bold text-lg mb-4">Support</h3>
             <ul className="space-y-3">
-              {["Help Center", "Safety", "Terms", "Privacy"].map((link) => (
+              {["FAQ", "Privacy Policy", "Terms of Service", "Help Center"].map((link) => (
                 <li key={link}>
-                  <a href="#" className="text-primary-foreground/70 hover:text-primary transition-colors">
+                  <a
+                    href="#"
+                    className="text-background/70 hover:text-primary transition-colors text-sm"
+                  >
                     {link}
                   </a>
                 </li>
@@ -53,19 +75,43 @@ const Footer = () => {
             </ul>
           </div>
 
+          {/* Contact */}
           <div>
-            <h4 className="font-semibold mb-4">Contact</h4>
-            <ul className="space-y-3 text-primary-foreground/70">
-              <li>hello@quickbites.com</li>
-              <li>1-800-QUICK-BITES</li>
-              <li>123 Food Street, NY 10001</li>
+            <h3 className="font-bold text-lg mb-4">Contact Us</h3>
+            <ul className="space-y-3">
+              <li className="flex items-center gap-3 text-sm text-background/70">
+                <MapPin className="h-4 w-4 text-primary" />
+                <span>Mohammadpur, Dhaka</span>
+              </li>
+              <li className="flex items-center gap-3 text-sm text-background/70">
+                <Phone className="h-4 w-4 text-primary" />
+                <span>+8801576545387</span>
+              </li>
+              <li className="flex items-center gap-3 text-sm text-background/70">
+                <Mail className="h-4 w-4 text-primary" />
+                <span>redwanhossen007@gmail.com</span>
+              </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className="pt-8 border-t border-primary-foreground/10 text-center text-primary-foreground/50 text-sm">
-          <p>© {new Date().getFullYear()} QuickBites. All rights reserved.</p>
+        <hr className="my-8 border-background/10" />
+
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-background/50">
+            © {new Date().getFullYear()} QuickBite. All rights reserved.
+          </p>
+          <div className="flex gap-6">
+            <a href="#" className="text-sm text-background/50 hover:text-primary transition-colors">
+              Privacy
+            </a>
+            <a href="#" className="text-sm text-background/50 hover:text-primary transition-colors">
+              Terms
+            </a>
+            <a href="#" className="text-sm text-background/50 hover:text-primary transition-colors">
+              Cookies
+            </a>
+          </div>
         </div>
       </div>
     </footer>
