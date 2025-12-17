@@ -20,6 +20,10 @@ import Profile from "@/pages/Profile";
 import StaffDashboard from "@/pages/StaffDashboard";
 import DeliveryDashboard from "@/pages/DeliveryDashboard";
 import ProductManagement from "@/pages/ProductManagement";
+import Messages from "@/pages/Messages";
+import AdminMessages from "@/pages/AdminMessages";
+import AdminUserManagement from "@/pages/AdminUserManagement";
+import PaymentVerification from "@/pages/PaymentVerification";
 
 const queryClient = new QueryClient();
 
@@ -45,9 +49,13 @@ const App = () => {
                       <Route path="/order" element={<PlaceOrder />} />
                       <Route path="/admin" element={<AdminDashboard />} />
                       <Route path="/admin/products" element={<ProductManagement />} />
+                      <Route path="/admin/users" element={<AdminUserManagement />} />
+                      <Route path="/admin/messages" element={<AdminMessages />} />
+                      <Route path="/admin/payments" element={<PaymentVerification />} />
                       <Route path="/staff" element={<StaffDashboard />} />
                       <Route path="/delivery" element={<DeliveryDashboard />} />
                       <Route path="/orders" element={<OrderHistory />} />
+                      <Route path="/messages" element={<Messages />} />
                       <Route path="/profile" element={<Profile />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>

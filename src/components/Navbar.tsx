@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, ShoppingBag, Sun, Moon, User, LogOut, Package, Settings, Shield, Truck, Users } from "lucide-react";
+import { Menu, X, ShoppingBag, Sun, Moon, User, LogOut, Package, Settings, Shield, Truck, Users, MessageSquare, CreditCard, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { useStore } from "@/context/StoreContext";
@@ -132,8 +132,13 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                     <Package className="h-4 w-4 mr-2" />
                     Order History
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/messages')}>
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    My Messages
+                  </DropdownMenuItem>
                   {isAdmin && (
                     <>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => navigate('/admin')}>
                         <Shield className="h-4 w-4 mr-2" />
                         Admin Dashboard
@@ -141,6 +146,18 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                       <DropdownMenuItem onClick={() => navigate('/admin/products')}>
                         <Package className="h-4 w-4 mr-2" />
                         Product Management
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/admin/users')}>
+                        <UserCog className="h-4 w-4 mr-2" />
+                        User Management
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/admin/messages')}>
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Customer Messages
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/admin/payments')}>
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Payment Verification
                       </DropdownMenuItem>
                     </>
                   )}
