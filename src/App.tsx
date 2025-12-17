@@ -14,6 +14,9 @@ import Home from "@/pages/Home";
 import Cart from "@/pages/Cart";
 import PlaceOrder from "@/pages/PlaceOrder";
 import NotFound from "@/pages/NotFound";
+import AdminDashboard from "@/pages/AdminDashboard";
+import OrderHistory from "@/pages/OrderHistory";
+import Profile from "@/pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +40,9 @@ const App = () => {
                       <Route path="/" element={<Home />} />
                       <Route path="/cart" element={<Cart />} />
                       <Route path="/order" element={<PlaceOrder />} />
+                      <Route path="/admin" element={<AdminDashboard />} />
+                      <Route path="/orders" element={<OrderHistory />} />
+                      <Route path="/profile" element={<Profile />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </div>

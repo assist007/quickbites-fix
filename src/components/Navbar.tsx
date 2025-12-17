@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, ShoppingBag, Sun, Moon, User, LogOut } from "lucide-react";
+import { Menu, X, ShoppingBag, Sun, Moon, User, LogOut, Package, Settings, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { useStore } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +23,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
   const { theme, setTheme } = useTheme();
   const { getTotalCartItems } = useStore();
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdminCheck();
   const navigate = useNavigate();
   const cartCount = getTotalCartItems();
 
@@ -115,6 +117,21 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                   <DropdownMenuItem className="text-muted-foreground text-sm">
                     {user.email}
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <Settings className="h-4 w-4 mr-2" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/orders')}>
+                    <Package className="h-4 w-4 mr-2" />
+                    Order History
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin Dashboard
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                     <LogOut className="h-4 w-4 mr-2" />
