@@ -17,6 +17,9 @@ import NotFound from "@/pages/NotFound";
 import AdminDashboard from "@/pages/AdminDashboard";
 import OrderHistory from "@/pages/OrderHistory";
 import Profile from "@/pages/Profile";
+import StaffDashboard from "@/pages/StaffDashboard";
+import DeliveryDashboard from "@/pages/DeliveryDashboard";
+import ProductManagement from "@/pages/ProductManagement";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +44,9 @@ const App = () => {
                       <Route path="/cart" element={<Cart />} />
                       <Route path="/order" element={<PlaceOrder />} />
                       <Route path="/admin" element={<AdminDashboard />} />
+                      <Route path="/admin/products" element={<ProductManagement />} />
+                      <Route path="/staff" element={<StaffDashboard />} />
+                      <Route path="/delivery" element={<DeliveryDashboard />} />
                       <Route path="/orders" element={<OrderHistory />} />
                       <Route path="/profile" element={<Profile />} />
                       <Route path="*" element={<NotFound />} />
