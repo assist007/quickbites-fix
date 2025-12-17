@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, ShoppingBag, Sun, Moon, User } from "lucide-react";
+import { Menu, X, ShoppingBag, Sun, Moon, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { useStore } from "@/context/StoreContext";
+import { useAuth } from "@/context/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface NavbarProps {
   setShowLogin: (show: boolean) => void;
@@ -13,6 +21,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const { getTotalCartItems } = useStore();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const cartCount = getTotalCartItems();
 
@@ -29,6 +38,11 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
       const element = document.querySelector(href);
       element?.scrollIntoView({ behavior: "smooth" });
     }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
   };
 
   return (
@@ -89,13 +103,34 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
               )}
             </Button>
 
-            <Button
-              className="gradient-hero text-white"
-              onClick={() => setShowLogin(true)}
-            >
-              <User className="h-4 w-4 mr-2" />
-              Sign In
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="gradient-hero text-white">
+                    <User className="h-4 w-4 mr-2" />
+                    {user.user_metadata?.full_name?.split(' ')[0] || 'Account'}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem className="text-muted-foreground text-sm">
+                    {user.email}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                className="gradient-hero text-white"
+                onClick={() => setShowLogin(true)}
+              >
+                <User className="h-4 w-4 mr-2" />
+                Sign In
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -158,16 +193,30 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                     </>
                   )}
                 </Button>
-                <Button
-                  className="gradient-hero text-white"
-                  size="sm"
-                  onClick={() => {
-                    setIsOpen(false);
-                    setShowLogin(true);
-                  }}
-                >
-                  Sign In
-                </Button>
+                {user ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsOpen(false);
+                      handleSignOut();
+                    }}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                ) : (
+                  <Button
+                    className="gradient-hero text-white"
+                    size="sm"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setShowLogin(true);
+                    }}
+                  >
+                    Sign In
+                  </Button>
+                )}
               </div>
             </div>
           </div>
