@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, ShoppingBag, DollarSign, TrendingUp, Loader2, Shield } from "lucide-react";
+import { Users, ShoppingBag, DollarSign, TrendingUp, Loader2, Shield, User } from "lucide-react";
 import { toast } from "sonner";
 
 interface Order {
@@ -17,7 +17,7 @@ interface Order {
   status: string;
   created_at: string;
   delivery_address: string;
-  profiles?: { full_name: string; email?: string } | null;
+  customer_name?: string | null;
 }
 
 interface Profile {
@@ -73,7 +73,7 @@ const AdminDashboard = () => {
 
       if (ordersError) throw ordersError;
 
-      // Fetch users
+      // Fetch users/profiles
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
         .select('*')
@@ -81,7 +81,13 @@ const AdminDashboard = () => {
 
       if (usersError) throw usersError;
 
-      setOrders(ordersData || []);
+      // Map customer names to orders
+      const ordersWithCustomers = (ordersData || []).map(order => ({
+        ...order,
+        customer_name: usersData?.find(u => u.id === order.user_id)?.full_name || null
+      }));
+
+      setOrders(ordersWithCustomers);
       setUsers(usersData || []);
 
       // Calculate stats
@@ -132,6 +138,16 @@ const AdminDashboard = () => {
     }
   };
 
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   if (authLoading || adminLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -145,7 +161,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
+    <div className="min-h-screen bg-background py-8 pt-24">
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-3 mb-8">
           <Shield className="h-8 w-8 text-primary" />
@@ -180,7 +196,7 @@ const AdminDashboard = () => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
+              <div className="text-2xl font-bold">৳{stats.totalRevenue.toFixed(2)}</div>
             </CardContent>
           </Card>
 
@@ -208,51 +224,64 @@ const AdminDashboard = () => {
             ) : orders.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">No orders yet</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Address</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {orders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-mono text-xs">{order.id.slice(0, 8)}...</TableCell>
-                      <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>${Number(order.total_amount).toFixed(2)}</TableCell>
-                      <TableCell className="max-w-[200px] truncate">{order.delivery_address || '-'}</TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusBadgeVariant(order.status)}>
-                          {order.status.replace('_', ' ')}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={order.status}
-                          onValueChange={(value) => updateOrderStatus(order.id, value)}
-                        >
-                          <SelectTrigger className="w-[140px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="confirmed">Confirmed</SelectItem>
-                            <SelectItem value="preparing">Preparing</SelectItem>
-                            <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
-                            <SelectItem value="delivered">Delivered</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Order ID</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Time</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Address</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {orders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-mono text-xs">{order.id.slice(0, 8)}...</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">
+                              {order.customer_name || 'Unknown'}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDateTime(order.created_at)}
+                        </TableCell>
+                        <TableCell>৳{Number(order.total_amount).toFixed(2)}</TableCell>
+                        <TableCell className="max-w-[200px] truncate">{order.delivery_address || '-'}</TableCell>
+                        <TableCell>
+                          <Badge variant={getStatusBadgeVariant(order.status)}>
+                            {order.status.replace('_', ' ')}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={order.status}
+                            onValueChange={(value) => updateOrderStatus(order.id, value)}
+                          >
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">Pending</SelectItem>
+                              <SelectItem value="confirmed">Confirmed</SelectItem>
+                              <SelectItem value="preparing">Preparing</SelectItem>
+                              <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
+                              <SelectItem value="delivered">Delivered</SelectItem>
+                              <SelectItem value="cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>
