@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-const BKASH_NUMBER = "01XXXXXXXXX"; // Replace with actual bKash number
+const BKASH_NUMBER = "01576545387"; // Replace with actual bKash number
 
 const PlaceOrder = () => {
   const { cartItems, foodList, foodLoading, getTotalCartAmount, clearCart } = useStore();
