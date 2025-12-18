@@ -32,15 +32,15 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
   const cartCount = getTotalCartItems();
 
   const navLinks = [
-    { name: "Home", href: "/" },
-    { name: "Menu", href: "#menu" },
-    { name: "How it Works", href: "#how-it-works" },
-    { name: "About", href: "#about" },
+    { name: "Home", href: "/", isRoute: true },
+    { name: "Menu", href: "#menu", isRoute: false },
+    { name: "How it Works", href: "#how-it-works", isRoute: false },
+    { name: "About", href: "#about", isRoute: false },
   ];
 
-  const handleNavClick = (href: string) => {
+  const handleNavClick = (href: string, isRoute: boolean) => {
     setIsOpen(false);
-    if (href.startsWith("#")) {
+    if (!isRoute && href.startsWith("#")) {
       const element = document.querySelector(href);
       element?.scrollIntoView({ behavior: "smooth" });
     }
@@ -67,21 +67,29 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                onClick={(e) => {
-                  if (link.href.startsWith("#")) {
+            {navLinks.map((link) =>
+              link.isRoute ? (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+                >
+                  {link.name}
+                </Link>
+              ) : (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  onClick={(e) => {
                     e.preventDefault();
-                    handleNavClick(link.href);
-                  }
-                }}
-                className="text-muted-foreground hover:text-foreground transition-colors font-medium"
-              >
-                {link.name}
-              </a>
-            ))}
+                    handleNavClick(link.href, link.isRoute);
+                  }}
+                  className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+                >
+                  {link.name}
+                </a>
+              )
+            )}
           </div>
 
           {/* Desktop Actions */}
@@ -220,21 +228,30 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
         {isOpen && (
           <div className="md:hidden py-4 border-t border-border animate-fade-in max-h-[calc(100dvh-4rem)] overflow-y-auto">
             <div className="flex flex-col gap-4">
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={(e) => {
-                    if (link.href.startsWith("#")) {
+              {navLinks.map((link) =>
+                link.isRoute ? (
+                  <Link
+                    key={link.name}
+                    to={link.href}
+                    onClick={() => setIsOpen(false)}
+                    className="text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                  >
+                    {link.name}
+                  </Link>
+                ) : (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    onClick={(e) => {
                       e.preventDefault();
-                    }
-                    handleNavClick(link.href);
-                  }}
-                  className="text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
-                >
-                  {link.name}
-                </a>
-              ))}
+                      handleNavClick(link.href, link.isRoute);
+                    }}
+                    className="text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                  >
+                    {link.name}
+                  </a>
+                )
+              )}
 
               {user && (
                 <div className="pt-2 border-t border-border flex flex-col gap-1">

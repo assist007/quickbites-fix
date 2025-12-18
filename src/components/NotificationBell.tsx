@@ -48,9 +48,9 @@ export const NotificationBell = () => {
 
     fetchNotifications();
 
-    // Real-time subscription for INSERT and UPDATE
+    // Real-time subscription for INSERT and UPDATE with unique channel per user
     const channel = supabase
-      .channel('notifications-changes')
+      .channel(`notifications-${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -60,6 +60,7 @@ export const NotificationBell = () => {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
+          console.log('New notification received:', payload);
           const newNotification = payload.new as Notification;
           setNotifications((prev) => [newNotification, ...prev]);
           setUnreadCount((prev) => prev + 1);
@@ -80,7 +81,9 @@ export const NotificationBell = () => {
           );
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Notification subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
