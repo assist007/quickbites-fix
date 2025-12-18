@@ -93,7 +93,13 @@ const AdminUserManagement = () => {
     }
   };
 
-  const assignRole = async (userId: string, role: 'admin' | 'employee' | 'user' | 'moderator') => {
+  const assignRole = async (userId: string, role: 'employee') => {
+    // Prevent self-modification
+    if (userId === user?.id) {
+      toast.error("You cannot modify your own roles");
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('user_roles')
@@ -113,13 +119,25 @@ const AdminUserManagement = () => {
     }
   };
 
-  const removeRole = async (userId: string, role: 'admin' | 'employee' | 'user' | 'moderator') => {
+  const removeRole = async (userId: string, role: string) => {
+    // Prevent self-modification
+    if (userId === user?.id) {
+      toast.error("You cannot modify your own roles");
+      return;
+    }
+
+    // Prevent removing admin role from anyone
+    if (role === 'admin') {
+      toast.error("Admin role cannot be removed");
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('user_roles')
         .delete()
         .eq('user_id', userId)
-        .eq('role', role);
+        .eq('role', role as 'admin' | 'employee' | 'user' | 'moderator');
 
       if (error) throw error;
 
@@ -239,21 +257,24 @@ const AdminUserManagement = () => {
                             {u.roles.length === 0 ? (
                               <Badge variant="outline">User</Badge>
                             ) : (
-                              u.roles.map(role => (
-                                <Badge 
-                                  key={role} 
-                                  variant={getRoleBadgeVariant(role)}
-                                  className="cursor-pointer"
-                                  onClick={() => {
-                                    if (role !== 'admin' || u.id !== user?.id) {
-                                      removeRole(u.id, role as 'admin' | 'employee' | 'user' | 'moderator');
-                                    }
-                                  }}
-                                >
-                                  {role.replace('_', ' ')}
-                                  {role !== 'admin' || u.id !== user?.id ? ' ×' : ''}
-                                </Badge>
-                              ))
+                              u.roles.map(role => {
+                                const canRemove = u.id !== user?.id && role !== 'admin';
+                                return (
+                                  <Badge 
+                                    key={role} 
+                                    variant={getRoleBadgeVariant(role)}
+                                    className={canRemove ? "cursor-pointer" : ""}
+                                    onClick={() => {
+                                      if (canRemove) {
+                                        removeRole(u.id, role);
+                                      }
+                                    }}
+                                  >
+                                    {role.replace('_', ' ')}
+                                    {canRemove ? ' ×' : ''}
+                                  </Badge>
+                                );
+                              })
                             )}
                           </div>
                         </TableCell>
@@ -275,25 +296,26 @@ const AdminUserManagement = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Select onValueChange={(role) => assignRole(u.id, role as 'admin' | 'employee' | 'user' | 'moderator')}>
-                              <SelectTrigger className="w-[130px]">
-                                <SelectValue placeholder="Add role" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="admin">
-                                  <div className="flex items-center gap-2">
-                                    <Shield className="h-4 w-4" />
-                                    Admin
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="employee">
-                                  <div className="flex items-center gap-2">
-                                    <Users className="h-4 w-4" />
-                                    Employee
-                                  </div>
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+                            {/* Don't show role modification for current admin user */}
+                            {u.id !== user?.id && !u.roles.includes('admin') && (
+                              <Select onValueChange={(role) => assignRole(u.id, role as 'employee')}>
+                                <SelectTrigger className="w-[130px]">
+                                  <SelectValue placeholder="Add role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="employee">
+                                    <div className="flex items-center gap-2">
+                                      <Users className="h-4 w-4" />
+                                      Employee
+                                    </div>
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
+                            
+                            {u.id === user?.id && (
+                              <span className="text-xs text-muted-foreground">Cannot modify own roles</span>
+                            )}
 
                             <Button
                               variant="outline"
