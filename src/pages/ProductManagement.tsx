@@ -64,6 +64,10 @@ const ProductManagement = () => {
     is_available: true,
   });
 
+  const notifyProductsChanged = () => {
+    window.dispatchEvent(new Event('qb:products-changed'));
+  };
+
   useEffect(() => {
     if (!authLoading && !adminLoading) {
       if (!user) {
@@ -99,7 +103,7 @@ const ProductManagement = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const productData = {
         name: formData.name,
@@ -124,6 +128,9 @@ const ProductManagement = () => {
         if (error) throw error;
         toast.success('Product added');
       }
+
+      // instantly refresh menu + hero everywhere
+      notifyProductsChanged();
 
       setDialogOpen(false);
       resetForm();
@@ -157,6 +164,8 @@ const ProductManagement = () => {
         .eq('id', id);
       if (error) throw error;
       toast.success('Product deleted');
+
+      notifyProductsChanged();
       fetchProducts();
     } catch (error) {
       console.error('Error deleting product:', error);
@@ -171,6 +180,8 @@ const ProductManagement = () => {
         .update({ is_available: !current })
         .eq('id', id);
       if (error) throw error;
+
+      notifyProductsChanged();
       fetchProducts();
     } catch (error) {
       console.error('Error updating product:', error);

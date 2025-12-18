@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 const BKASH_NUMBER = "01XXXXXXXXX"; // Replace with actual bKash number
 
 const PlaceOrder = () => {
-  const { cartItems, foodList, getTotalCartAmount, clearCart } = useStore();
+  const { cartItems, foodList, foodLoading, getTotalCartAmount, clearCart } = useStore();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -33,6 +33,7 @@ const PlaceOrder = () => {
   const deliveryFee = subtotal > 0 ? 50 : 0;
   const total = subtotal + deliveryFee;
 
+  const hasAnyCartItems = Object.keys(cartItems).length > 0;
   const cartItemsList = foodList.filter((item) => cartItems[item.id] > 0);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,7 +136,18 @@ const PlaceOrder = () => {
     }
   };
 
-  if (cartItemsList.length === 0) {
+  if (foodLoading && hasAnyCartItems) {
+    return (
+      <main className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <h2 className="text-2xl font-bold mb-2">Loading checkout…</h2>
+          <p className="text-muted-foreground">Fetching latest products</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!hasAnyCartItems || cartItemsList.length === 0) {
     return (
       <main className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center animate-fade-in">

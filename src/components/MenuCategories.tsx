@@ -1,11 +1,35 @@
-import { menuCategories } from "@/context/StoreContext";
+import { useMemo } from "react";
+import { useStore, categoryIconMap } from "@/context/StoreContext";
 
 interface MenuCategoriesProps {
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
 }
 
+type CategoryItem = {
+  value: string;
+  label: string;
+  icon: string;
+};
+
 const MenuCategories = ({ selectedCategory, setSelectedCategory }: MenuCategoriesProps) => {
+  const { foodList } = useStore();
+
+  const categories = useMemo<CategoryItem[]>(() => {
+    const unique = Array.from(
+      new Set(foodList.map((f) => f.category).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b));
+
+    return [
+      { value: "All", label: "All", icon: "🍽️" },
+      ...unique.map((cat) => ({
+        value: cat,
+        label: cat,
+        icon: categoryIconMap[cat.toLowerCase()] ?? "🍴",
+      })),
+    ];
+  }, [foodList]);
+
   return (
     <section className="py-12 md:py-16">
       <div className="container mx-auto px-4">
@@ -19,12 +43,12 @@ const MenuCategories = ({ selectedCategory, setSelectedCategory }: MenuCategorie
         </div>
 
         <div className="flex flex-wrap justify-center gap-3 md:gap-4">
-          {menuCategories.map((category, index) => (
+          {categories.map((category, index) => (
             <button
-              key={category.name}
-              onClick={() => setSelectedCategory(category.name)}
+              key={category.value}
+              onClick={() => setSelectedCategory(category.value)}
               className={`group flex flex-col items-center gap-2 p-3 md:p-4 rounded-2xl transition-all duration-300 animate-fade-in ${
-                selectedCategory === category.name
+                selectedCategory === category.value
                   ? "bg-primary text-primary-foreground shadow-medium scale-105"
                   : "bg-card hover:bg-accent border border-border hover:border-primary/30 shadow-soft hover:shadow-medium"
               }`}
@@ -34,7 +58,7 @@ const MenuCategories = ({ selectedCategory, setSelectedCategory }: MenuCategorie
                 {category.icon}
               </span>
               <span className="text-xs md:text-sm font-medium whitespace-nowrap">
-                {category.name}
+                {category.label}
               </span>
             </button>
           ))}
