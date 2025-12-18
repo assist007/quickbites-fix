@@ -42,46 +42,23 @@ const Messages = () => {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/');
+      navigate("/");
       return;
     }
-    if (user) {
-      fetchMessages();
-      subscribeToMessages();
-    }
-  }, [user, authLoading, navigate]);
 
-  const fetchMessages = async () => {
     if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setMessages(data || []);
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const subscribeToMessages = () => {
-    if (!user) return;
+    fetchMessages();
 
     const channel = supabase
-      .channel('user-messages')
+      .channel(`user-messages:${user.id}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'messages',
-          filter: `user_id=eq.${user.id}`
+          event: "*",
+          schema: "public",
+          table: "messages",
+          filter: `user_id=eq.${user.id}`,
         },
         () => {
           fetchMessages();
@@ -92,6 +69,25 @@ const Messages = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, [user, authLoading, navigate]);
+
+  const fetchMessages = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("id, subject, message, reply, is_read, created_at, replied_at, product_id")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setMessages((data || []) as Message[]);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const sendMessage = async () => {
@@ -102,20 +98,29 @@ const Messages = () => {
 
     setSending(true);
     try {
-      const { error } = await supabase.from('messages').insert({
-        user_id: user.id,
-        subject: newMessage.subject,
-        message: newMessage.message
-      });
+      const { data, error } = await supabase
+        .from("messages")
+        .insert({
+          user_id: user.id,
+          subject: newMessage.subject,
+          message: newMessage.message,
+        })
+        .select("id, subject, message, reply, is_read, created_at, replied_at, product_id")
+        .single();
 
       if (error) throw error;
+
+      if (data) {
+        setMessages((prev) => [data as Message, ...prev]);
+      } else {
+        fetchMessages();
+      }
 
       toast.success("Message sent successfully");
       setNewMessage({ subject: "", message: "" });
       setDialogOpen(false);
-      fetchMessages();
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
       toast.error("Failed to send message");
     } finally {
       setSending(false);
