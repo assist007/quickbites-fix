@@ -93,7 +93,7 @@ const AdminUserManagement = () => {
     }
   };
 
-  const assignRole = async (userId: string, role: 'admin' | 'staff' | 'delivery_boy' | 'user' | 'moderator') => {
+  const assignRole = async (userId: string, role: 'admin' | 'employee' | 'user' | 'moderator') => {
     try {
       const { error } = await supabase
         .from('user_roles')
@@ -113,7 +113,7 @@ const AdminUserManagement = () => {
     }
   };
 
-  const removeRole = async (userId: string, role: 'admin' | 'staff' | 'delivery_boy' | 'user' | 'moderator') => {
+  const removeRole = async (userId: string, role: 'admin' | 'employee' | 'user' | 'moderator') => {
     try {
       const { error } = await supabase
         .from('user_roles')
@@ -175,8 +175,7 @@ const AdminUserManagement = () => {
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case 'admin': return 'destructive';
-      case 'staff': return 'default';
-      case 'delivery_boy': return 'secondary';
+      case 'employee': return 'default';
       default: return 'outline';
     }
   };
@@ -247,7 +246,7 @@ const AdminUserManagement = () => {
                                   className="cursor-pointer"
                                   onClick={() => {
                                     if (role !== 'admin' || u.id !== user?.id) {
-                                      removeRole(u.id, role as 'admin' | 'staff' | 'delivery_boy' | 'user' | 'moderator');
+                                      removeRole(u.id, role as 'admin' | 'employee' | 'user' | 'moderator');
                                     }
                                   }}
                                 >
@@ -276,7 +275,7 @@ const AdminUserManagement = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Select onValueChange={(role) => assignRole(u.id, role as 'admin' | 'staff' | 'delivery_boy' | 'user' | 'moderator')}>
+                            <Select onValueChange={(role) => assignRole(u.id, role as 'admin' | 'employee' | 'user' | 'moderator')}>
                               <SelectTrigger className="w-[130px]">
                                 <SelectValue placeholder="Add role" />
                               </SelectTrigger>
@@ -287,16 +286,10 @@ const AdminUserManagement = () => {
                                     Admin
                                   </div>
                                 </SelectItem>
-                                <SelectItem value="staff">
+                                <SelectItem value="employee">
                                   <div className="flex items-center gap-2">
                                     <Users className="h-4 w-4" />
-                                    Staff
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="delivery_boy">
-                                  <div className="flex items-center gap-2">
-                                    <UserCog className="h-4 w-4" />
-                                    Delivery
+                                    Employee
                                   </div>
                                 </SelectItem>
                               </SelectContent>

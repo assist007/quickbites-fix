@@ -28,15 +28,15 @@ const AdminMessages = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdminCheck();
-  const { hasRole: isStaff, loading: staffLoading } = useRoleCheck('staff');
+  const { hasRole: isEmployee, loading: employeeLoading } = useRoleCheck('employee');
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
 
-  const canAccess = isAdmin || isStaff;
-  const isLoading = authLoading || adminLoading || staffLoading;
+  const canAccess = isAdmin || isEmployee;
+  const isLoading = authLoading || adminLoading || employeeLoading;
 
   useEffect(() => {
     if (!authLoading && !user) {

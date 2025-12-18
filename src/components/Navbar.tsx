@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, ShoppingBag, Sun, Moon, User, LogOut, Package, Settings, Shield, Truck, Users, MessageSquare, CreditCard, UserCog } from "lucide-react";
+import { Menu, X, ShoppingBag, Sun, Moon, User, LogOut, Package, Settings, Shield, Users, MessageSquare, CreditCard, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { useStore } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
-import { useStaffCheck, useDeliveryCheck } from "@/hooks/useRoleCheck";
+import { useEmployeeCheck } from "@/hooks/useRoleCheck";
 import { NotificationBell } from "@/components/NotificationBell";
 import {
   DropdownMenu,
@@ -26,8 +26,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
   const { getTotalCartItems } = useStore();
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdminCheck();
-  const { hasRole: isStaff } = useStaffCheck();
-  const { hasRole: isDelivery } = useDeliveryCheck();
+  const { hasRole: isEmployee } = useEmployeeCheck();
   const navigate = useNavigate();
   const location = useLocation();
   const cartCount = getTotalCartItems();
@@ -42,15 +41,12 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
   const handleNavClick = (href: string, isRoute: boolean) => {
     setIsOpen(false);
     if (isRoute) {
-      // If already on home page, scroll to top
       if (location.pathname === href) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } else if (href.startsWith("#")) {
-      // If not on home page, navigate to home first then scroll
       if (location.pathname !== "/") {
         navigate("/");
-        // Wait for navigation then scroll
         setTimeout(() => {
           const element = document.querySelector(href);
           element?.scrollIntoView({ behavior: "smooth" });
@@ -186,16 +182,10 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                       </DropdownMenuItem>
                     </>
                   )}
-                  {isStaff && (
-                    <DropdownMenuItem onClick={() => navigate("/staff")}>
+                  {isEmployee && (
+                    <DropdownMenuItem onClick={() => navigate("/employee")}>
                       <Users className="h-4 w-4 mr-2" />
-                      Staff Dashboard
-                    </DropdownMenuItem>
-                  )}
-                  {isDelivery && (
-                    <DropdownMenuItem onClick={() => navigate("/delivery")}>
-                      <Truck className="h-4 w-4 mr-2" />
-                      Delivery Dashboard
+                      Employee Dashboard
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
@@ -365,29 +355,16 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                     </>
                   )}
 
-                  {isStaff && (
+                  {isEmployee && (
                     <button
                       type="button"
                       onClick={() => {
                         setIsOpen(false);
-                        navigate("/staff");
+                        navigate("/employee");
                       }}
                       className="w-full text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                     >
-                      Staff Dashboard
-                    </button>
-                  )}
-
-                  {isDelivery && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsOpen(false);
-                        navigate("/delivery");
-                      }}
-                      className="w-full text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
-                    >
-                      Delivery Dashboard
+                      Employee Dashboard
                     </button>
                   )}
                 </div>
