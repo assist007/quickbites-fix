@@ -16,6 +16,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Message {
   id: string;
@@ -26,18 +33,28 @@ interface Message {
   created_at: string;
   replied_at: string | null;
   product_id: string | null;
+  recipient_type: string | null;
+  recipient_id: string | null;
+}
+
+interface Employee {
+  user_id: string;
+  full_name: string | null;
 }
 
 const Messages = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newMessage, setNewMessage] = useState({
     subject: "",
-    message: ""
+    message: "",
+    recipientType: "admin",
+    recipientId: ""
   });
 
   useEffect(() => {
@@ -49,6 +66,7 @@ const Messages = () => {
     if (!user) return;
 
     fetchMessages();
+    fetchEmployees();
 
     const channel = supabase
       .channel(`user-messages:${user.id}`)
@@ -71,13 +89,43 @@ const Messages = () => {
     };
   }, [user, authLoading, navigate]);
 
+  const fetchEmployees = async () => {
+    try {
+      const { data: roleData, error: roleError } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "employee");
+
+      if (roleError) throw roleError;
+
+      if (roleData && roleData.length > 0) {
+        const userIds = roleData.map(r => r.user_id);
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", userIds);
+
+        if (profileError) throw profileError;
+
+        setEmployees(
+          (profileData || []).map(p => ({
+            user_id: p.id,
+            full_name: p.full_name
+          }))
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    }
+  };
+
   const fetchMessages = async () => {
     if (!user) return;
 
     try {
       const { data, error } = await supabase
         .from("messages")
-        .select("id, subject, message, reply, is_read, created_at, replied_at, product_id")
+        .select("id, subject, message, reply, is_read, created_at, replied_at, product_id, recipient_type, recipient_id")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -96,16 +144,28 @@ const Messages = () => {
       return;
     }
 
+    if (newMessage.recipientType === "employee" && !newMessage.recipientId) {
+      toast.error("Please select an employee");
+      return;
+    }
+
     setSending(true);
     try {
+      const insertData: any = {
+        user_id: user.id,
+        subject: newMessage.subject,
+        message: newMessage.message,
+        recipient_type: newMessage.recipientType,
+      };
+
+      if (newMessage.recipientType === "employee" && newMessage.recipientId) {
+        insertData.recipient_id = newMessage.recipientId;
+      }
+
       const { data, error } = await supabase
         .from("messages")
-        .insert({
-          user_id: user.id,
-          subject: newMessage.subject,
-          message: newMessage.message,
-        })
-        .select("id, subject, message, reply, is_read, created_at, replied_at, product_id")
+        .insert(insertData)
+        .select("id, subject, message, reply, is_read, created_at, replied_at, product_id, recipient_type, recipient_id")
         .single();
 
       if (error) throw error;
@@ -117,7 +177,7 @@ const Messages = () => {
       }
 
       toast.success("Message sent successfully");
-      setNewMessage({ subject: "", message: "" });
+      setNewMessage({ subject: "", message: "", recipientType: "admin", recipientId: "" });
       setDialogOpen(false);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -163,6 +223,50 @@ const Messages = () => {
                 <DialogTitle>Send a Message</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Send To</label>
+                  <Select
+                    value={newMessage.recipientType}
+                    onValueChange={(value) => setNewMessage(prev => ({ 
+                      ...prev, 
+                      recipientType: value,
+                      recipientId: value !== "employee" ? "" : prev.recipientId
+                    }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select recipient" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="all_employees">All Employees</SelectItem>
+                      {employees.length > 0 && (
+                        <SelectItem value="employee">Specific Employee</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {newMessage.recipientType === "employee" && employees.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Select Employee</label>
+                    <Select
+                      value={newMessage.recipientId}
+                      onValueChange={(value) => setNewMessage(prev => ({ ...prev, recipientId: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose an employee" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {employees.map((emp) => (
+                          <SelectItem key={emp.user_id} value={emp.user_id}>
+                            {emp.full_name || "Unnamed Employee"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium mb-2">Subject</label>
                   <Input
