@@ -582,7 +582,7 @@ const Messages = () => {
                     <Badge variant="secondary">
                       {roleFilter === "all" 
                         ? receivedMessages.length 
-                        : receivedMessages.filter(m => m.sender_role === roleFilter).length}
+                        : receivedMessages.filter(m => m.sender_role?.toLowerCase() === roleFilter.toLowerCase()).length}
                     </Badge>
                     Received Messages
                   </h2>
