@@ -47,8 +47,18 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } else if (href.startsWith("#")) {
-      const element = document.querySelector(href);
-      element?.scrollIntoView({ behavior: "smooth" });
+      // If not on home page, navigate to home first then scroll
+      if (location.pathname !== "/") {
+        navigate("/");
+        // Wait for navigation then scroll
+        setTimeout(() => {
+          const element = document.querySelector(href);
+          element?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      } else {
+        const element = document.querySelector(href);
+        element?.scrollIntoView({ behavior: "smooth" });
+      }
     }
   };
 
