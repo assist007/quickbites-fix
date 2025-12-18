@@ -33,6 +33,7 @@ interface Message {
   created_at: string;
   replied_at: string | null;
   profiles?: { full_name: string | null } | null;
+  senderRole?: string;
 }
 
 const AdminMessages = () => {
@@ -98,10 +99,20 @@ const AdminMessages = () => {
         .select('id, full_name')
         .in('id', userIds);
 
-      const messagesWithProfiles = (data || []).map(msg => ({
-        ...msg,
-        profiles: profiles?.find(p => p.id === msg.user_id) || null
-      }));
+      // Fetch user roles
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
+      const messagesWithProfiles = (data || []).map(msg => {
+        const userRole = roles?.find(r => r.user_id === msg.user_id)?.role || 'user';
+        return {
+          ...msg,
+          profiles: profiles?.find(p => p.id === msg.user_id) || null,
+          senderRole: userRole
+        };
+      });
 
       setMessages(messagesWithProfiles);
     } catch (error) {
@@ -222,6 +233,9 @@ const AdminMessages = () => {
                               <span className="text-sm font-bold text-foreground">
                                 {msg.profiles?.full_name || 'Anonymous'}
                               </span>
+                              <Badge variant="outline" className="text-xs capitalize">
+                                {msg.senderRole}
+                              </Badge>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -329,6 +343,9 @@ const AdminMessages = () => {
                               <span className="text-sm font-bold text-foreground">
                                 {msg.profiles?.full_name || 'Anonymous'}
                               </span>
+                              <Badge variant="outline" className="text-xs capitalize">
+                                {msg.senderRole}
+                              </Badge>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
