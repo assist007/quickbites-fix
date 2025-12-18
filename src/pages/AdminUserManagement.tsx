@@ -260,7 +260,7 @@ const AdminUserManagement = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
-                            {u.roles.length === 0 ? (
+                            {u.roles.length === 0 || !u.roles.some(r => r !== 'user') ? (
                               <Badge variant="outline">User</Badge>
                             ) : (
                               u.roles.map(role => {
@@ -269,12 +269,13 @@ const AdminUserManagement = () => {
                                   <Badge 
                                     key={role} 
                                     variant={getRoleBadgeVariant(role)}
-                                    className={canRemove ? "cursor-pointer" : ""}
+                                    className={canRemove ? "cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors" : ""}
                                     onClick={() => {
                                       if (canRemove) {
                                         removeRole(u.id, role);
                                       }
                                     }}
+                                    title={canRemove ? "Click to remove role" : ""}
                                   >
                                     {role.replace('_', ' ')}
                                     {canRemove ? ' ×' : ''}
@@ -304,19 +305,27 @@ const AdminUserManagement = () => {
                           <div className="flex items-center gap-2">
                             {/* Don't show role modification for current admin user */}
                             {u.id !== user?.id && !u.roles.includes('admin') && (
-                              <Select onValueChange={(role) => assignRole(u.id, role as 'employee')}>
-                                <SelectTrigger className="w-[130px]">
-                                  <SelectValue placeholder="Add role" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="employee">
-                                    <div className="flex items-center gap-2">
-                                      <Users className="h-4 w-4" />
-                                      Employee
-                                    </div>
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <>
+                                {u.roles.includes('employee') ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => removeRole(u.id, 'employee')}
+                                    className="text-xs"
+                                  >
+                                    Make User
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => assignRole(u.id, 'employee')}
+                                    className="text-xs"
+                                  >
+                                    Make Employee
+                                  </Button>
+                                )}
+                              </>
                             )}
                             
                             {u.id === user?.id && (
