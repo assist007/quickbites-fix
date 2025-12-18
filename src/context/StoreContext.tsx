@@ -104,6 +104,59 @@ export const StoreContextProvider = ({ children }: { children: ReactNode }) => {
   const [foodLoading, setFoodLoading] = useState(true);
   const [cartItems, setCartItems] = useState<CartItem>({});
 
+  // Default items (shown even when there are no products in Supabase)
+  // New products added by admin will appear after these.
+  const defaultFoodItems = useMemo<FoodItem[]>(
+    () => [
+      {
+        id: "default-pizza",
+        name: "Margherita Pizza",
+        description: "Classic tomato, mozzarella & basil.",
+        price: 12.99,
+        image: pizzaImg,
+        category: "Pizza",
+        rating: 4.8,
+      },
+      {
+        id: "default-salad",
+        name: "Fresh Garden Salad",
+        description: "Crisp greens with house dressing.",
+        price: 7.49,
+        image: saladImg,
+        category: "Salad",
+        rating: 4.7,
+      },
+      {
+        id: "default-wings",
+        name: "Spicy Chicken Wings",
+        description: "Crispy wings with a spicy kick.",
+        price: 10.99,
+        image: wingsImg,
+        category: "Appetizer",
+        rating: 4.7,
+      },
+      {
+        id: "default-dessert",
+        name: "Chocolate Dessert",
+        description: "Rich, sweet and satisfying.",
+        price: 6.25,
+        image: dessertImg,
+        category: "Dessert",
+        rating: 4.9,
+      },
+      {
+        id: "default-bowl",
+        name: "Signature Bowl",
+        description: "A hearty bowl packed with flavor.",
+        price: 9.75,
+        image: bowlImg,
+        category: "Main",
+        rating: 4.6,
+      },
+    ],
+    []
+  );
+
   const fetchFoodList = useCallback(async () => {
     setFoodLoading(true);
 
@@ -112,7 +165,8 @@ export const StoreContextProvider = ({ children }: { children: ReactNode }) => {
         .from("products")
         .select("id, name, description, price, category, image_url")
         .eq("is_available", true)
-        .order("created_at", { ascending: false });
+        // older first → newly added products show at the bottom
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
 
@@ -129,14 +183,14 @@ export const StoreContextProvider = ({ children }: { children: ReactNode }) => {
         } satisfies FoodItem;
       });
 
-      setFoodList(mapped);
+      setFoodList(mapped.length ? [...defaultFoodItems, ...mapped] : defaultFoodItems);
     } catch (error) {
       console.error("Error loading products:", error);
-      setFoodList([]);
+      setFoodList(defaultFoodItems);
     } finally {
       setFoodLoading(false);
     }
-  }, []);
+  }, [defaultFoodItems]);
 
   useEffect(() => {
     fetchFoodList();

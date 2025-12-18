@@ -218,7 +218,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
 
         {/* Mobile Navigation */}
         {isOpen && (
-          <div className="md:hidden py-4 border-t border-border animate-fade-in">
+          <div className="md:hidden py-4 border-t border-border animate-fade-in max-h-[calc(100dvh-4rem)] overflow-y-auto">
             <div className="flex flex-col gap-4">
               {navLinks.map((link) => (
                 <a
@@ -237,7 +237,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
               ))}
 
               {user && (
-                <div className="pt-2 border-t border-border">
+                <div className="pt-2 border-t border-border flex flex-col gap-1">
                   <p className="text-xs font-medium text-muted-foreground py-2">
                     Dashboard
                   </p>
@@ -248,7 +248,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                       setIsOpen(false);
                       navigate("/profile");
                     }}
-                    className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                    className="w-full text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                   >
                     Profile
                   </button>
@@ -259,7 +259,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                       setIsOpen(false);
                       navigate("/orders");
                     }}
-                    className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                    className="w-full text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                   >
                     Order History
                   </button>
@@ -270,7 +270,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                       setIsOpen(false);
                       navigate("/messages");
                     }}
-                    className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                    className="w-full text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                   >
                     My Messages
                   </button>
@@ -283,7 +283,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                           setIsOpen(false);
                           navigate("/admin");
                         }}
-                        className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                        className="w-full text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                       >
                         Admin Dashboard
                       </button>
@@ -293,7 +293,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                           setIsOpen(false);
                           navigate("/admin/products");
                         }}
-                        className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                        className="w-full text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                       >
                         Product Management
                       </button>
@@ -303,7 +303,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                           setIsOpen(false);
                           navigate("/admin/users");
                         }}
-                        className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                        className="w-full text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                       >
                         User Management
                       </button>
@@ -313,7 +313,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                           setIsOpen(false);
                           navigate("/admin/messages");
                         }}
-                        className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                        className="w-full text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                       >
                         Customer Messages
                       </button>
@@ -323,7 +323,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                           setIsOpen(false);
                           navigate("/admin/payments");
                         }}
-                        className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                        className="w-full text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                       >
                         Payment Verification
                       </button>
@@ -337,7 +337,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                         setIsOpen(false);
                         navigate("/staff");
                       }}
-                      className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                      className="w-full text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                     >
                       Staff Dashboard
                     </button>
@@ -350,7 +350,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                         setIsOpen(false);
                         navigate("/delivery");
                       }}
-                      className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                      className="w-full text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                     >
                       Delivery Dashboard
                     </button>
@@ -358,10 +358,11 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                 </div>
               )}
 
-              <div className="flex items-center justify-between pt-4 border-t border-border">
+              <div className="flex flex-col gap-2 pt-4 border-t border-border sm:flex-row sm:items-center sm:justify-between">
                 <Button
                   variant="outline"
                   size="sm"
+                  className="w-full sm:w-auto"
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 >
                   {theme === "dark" ? (
@@ -378,6 +379,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="w-full sm:w-auto"
                     onClick={() => {
                       setIsOpen(false);
                       handleSignOut();
@@ -388,7 +390,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                   </Button>
                 ) : (
                   <Button
-                    className="gradient-hero text-primary-foreground"
+                    className="gradient-hero text-primary-foreground w-full sm:w-auto"
                     size="sm"
                     onClick={() => {
                       setIsOpen(false);
