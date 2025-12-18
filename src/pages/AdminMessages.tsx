@@ -79,8 +79,9 @@ const AdminMessages = () => {
 
       // Filter messages based on role
       if (isAdmin) {
-        // Admin sees messages sent to admin
-        query = query.eq('recipient_type', 'admin');
+        // Admin sees messages sent to all admins (recipient_id is null) OR specifically to them
+        query = query.eq('recipient_type', 'admin')
+          .or(`recipient_id.is.null,recipient_id.eq.${user.id}`);
       } else if (isEmployee) {
         // Employee sees messages sent specifically to them OR to all_employees
         query = query.or(`recipient_id.eq.${user.id},recipient_type.eq.all_employees`);
