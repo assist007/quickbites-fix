@@ -21,6 +21,8 @@ export type Database = {
           is_read: boolean | null
           message: string
           product_id: string | null
+          recipient_id: string | null
+          recipient_type: string | null
           replied_at: string | null
           replied_by: string | null
           reply: string | null
@@ -33,6 +35,8 @@ export type Database = {
           is_read?: boolean | null
           message: string
           product_id?: string | null
+          recipient_id?: string | null
+          recipient_type?: string | null
           replied_at?: string | null
           replied_by?: string | null
           reply?: string | null
@@ -45,6 +49,8 @@ export type Database = {
           is_read?: boolean | null
           message?: string
           product_id?: string | null
+          recipient_id?: string | null
+          recipient_type?: string | null
           replied_at?: string | null
           replied_by?: string | null
           reply?: string | null
