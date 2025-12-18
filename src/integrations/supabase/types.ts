@@ -259,7 +259,7 @@ export type Database = {
       make_user_admin_by_email: { Args: { _email: string }; Returns: undefined }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user" | "staff" | "delivery_boy"
+      app_role: "admin" | "moderator" | "user" | "employee"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -387,7 +387,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user", "staff", "delivery_boy"],
+      app_role: ["admin", "moderator", "user", "employee"],
     },
   },
 } as const

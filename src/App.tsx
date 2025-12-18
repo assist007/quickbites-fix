@@ -17,8 +17,7 @@ import NotFound from "@/pages/NotFound";
 import AdminDashboard from "@/pages/AdminDashboard";
 import OrderHistory from "@/pages/OrderHistory";
 import Profile from "@/pages/Profile";
-import StaffDashboard from "@/pages/StaffDashboard";
-import DeliveryDashboard from "@/pages/DeliveryDashboard";
+import EmployeeDashboard from "@/pages/EmployeeDashboard";
 import ProductManagement from "@/pages/ProductManagement";
 import Messages from "@/pages/Messages";
 import AdminMessages from "@/pages/AdminMessages";
@@ -52,8 +51,7 @@ const App = () => {
                       <Route path="/admin/users" element={<AdminUserManagement />} />
                       <Route path="/admin/messages" element={<AdminMessages />} />
                       <Route path="/admin/payments" element={<PaymentVerification />} />
-                      <Route path="/staff" element={<StaffDashboard />} />
-                      <Route path="/delivery" element={<DeliveryDashboard />} />
+                      <Route path="/employee" element={<EmployeeDashboard />} />
                       <Route path="/orders" element={<OrderHistory />} />
                       <Route path="/messages" element={<Messages />} />
                       <Route path="/profile" element={<Profile />} />

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-type AppRole = 'admin' | 'moderator' | 'user' | 'staff' | 'delivery_boy';
+type AppRole = 'admin' | 'moderator' | 'user' | 'employee';
 
 export const useRoleCheck = (role: AppRole) => {
   const { user, loading: authLoading } = useAuth();
@@ -41,5 +41,4 @@ export const useRoleCheck = (role: AppRole) => {
   return { hasRole, loading: authLoading || loading };
 };
 
-export const useStaffCheck = () => useRoleCheck('staff');
-export const useDeliveryCheck = () => useRoleCheck('delivery_boy');
+export const useEmployeeCheck = () => useRoleCheck('employee');
