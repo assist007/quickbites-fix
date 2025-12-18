@@ -21,7 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Loader2, Package, ShoppingCart, Clock, CheckCircle } from 'lucide-react';
+import { Loader2, Package, ShoppingCart, Clock, CheckCircle, User } from 'lucide-react';
 import { Json } from '@/integrations/supabase/types';
 
 interface OrderItem {
@@ -40,6 +40,7 @@ interface Order {
   created_at: string;
   delivery_address: string | null;
   phone: string | null;
+  customer_name?: string | null;
 }
 
 const EmployeeDashboard = () => {
@@ -80,7 +81,21 @@ const EmployeeDashboard = () => {
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
-      setOrders(ordersData || []);
+
+      // Fetch customer profiles for the orders
+      const userIds = [...new Set(ordersData?.map(o => o.user_id) || [])];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', userIds);
+
+      // Combine orders with customer names
+      const ordersWithCustomers = (ordersData || []).map(order => ({
+        ...order,
+        customer_name: profilesData?.find(p => p.id === order.user_id)?.full_name || null
+      }));
+
+      setOrders(ordersWithCustomers);
 
       // Calculate stats
       const pending = ordersData?.filter((o) => o.status === 'pending').length || 0;
@@ -120,6 +135,16 @@ const EmployeeDashboard = () => {
       case 'delivered': return 'default';
       default: return 'secondary';
     }
+  };
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   if (authLoading || employeeLoading || loading) {
@@ -180,60 +205,75 @@ const EmployeeDashboard = () => {
           <CardTitle>Orders</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Address</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((order) => {
-                const items = order.items as unknown as OrderItem[];
-                return (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-mono text-xs">
-                      {order.id.slice(0, 8)}...
-                    </TableCell>
-                    <TableCell>
-                      {Array.isArray(items)
-                        ? items.map((i) => `${i.name} x${i.quantity}`).join(', ')
-                        : 'N/A'}
-                    </TableCell>
-                    <TableCell>${order.total_amount.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusBadgeVariant(order.status)}>
-                        {order.status.replace('_', ' ')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="max-w-[150px] truncate">
-                      {order.delivery_address || 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={order.status}
-                        onValueChange={(value) => updateOrderStatus(order.id, value)}
-                      >
-                        <SelectTrigger className="w-[130px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="preparing">Preparing</SelectItem>
-                          <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
-                          <SelectItem value="delivered">Delivered</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order ID</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Items</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Address</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {orders.map((order) => {
+                  const items = order.items as unknown as OrderItem[];
+                  return (
+                    <TableRow key={order.id}>
+                      <TableCell className="font-mono text-xs">
+                        {order.id.slice(0, 8)}...
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">
+                            {order.customer_name || 'Unknown'}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatDateTime(order.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        {Array.isArray(items)
+                          ? items.map((i) => `${i.name} x${i.quantity}`).join(', ')
+                          : 'N/A'}
+                      </TableCell>
+                      <TableCell>৳{order.total_amount.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(order.status)}>
+                          {order.status.replace('_', ' ')}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="max-w-[150px] truncate">
+                        {order.delivery_address || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={order.status}
+                          onValueChange={(value) => updateOrderStatus(order.id, value)}
+                        >
+                          <SelectTrigger className="w-[130px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="preparing">Preparing</SelectItem>
+                            <SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
+                            <SelectItem value="delivered">Delivered</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
