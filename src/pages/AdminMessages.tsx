@@ -63,17 +63,30 @@ const AdminMessages = () => {
   }, [user, authLoading, canAccess, isLoading, navigate]);
 
   useEffect(() => {
-    if (canAccess) {
+    if (canAccess && user) {
       fetchMessages();
     }
-  }, [canAccess]);
+  }, [canAccess, user]);
 
   const fetchMessages = async () => {
+    if (!user) return;
+    
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('messages')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // Filter messages based on role
+      if (isAdmin) {
+        // Admin sees messages sent to admin
+        query = query.eq('recipient_type', 'admin');
+      } else if (isEmployee) {
+        // Employee sees messages sent specifically to them OR to all_employees
+        query = query.or(`recipient_id.eq.${user.id},recipient_type.eq.all_employees`);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
