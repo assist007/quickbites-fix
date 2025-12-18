@@ -281,19 +281,11 @@ const Messages = () => {
           .select("user_id, role")
           .in("user_id", senderIds);
 
-        const messagesWithSenderInfo = receivedData.map(msg => {
-          const roleRecord = roles?.find(r => r.user_id === msg.user_id);
-          // Determine role - check if sender is in user_roles, default to 'user'
-          let senderRole = 'user';
-          if (roleRecord) {
-            senderRole = roleRecord.role;
-          }
-          return {
-            ...msg,
-            sender_name: profiles?.find(p => p.id === msg.user_id)?.full_name || "Unknown",
-            sender_role: senderRole
-          };
-        });
+        const messagesWithSenderInfo = receivedData.map(msg => ({
+          ...msg,
+          sender_name: profiles?.find(p => p.id === msg.user_id)?.full_name || "Unknown",
+          sender_role: roles?.find(r => r.user_id === msg.user_id)?.role || "user"
+        }));
         setReceivedMessages(messagesWithSenderInfo as Message[]);
       } else {
         setReceivedMessages([]);
@@ -440,7 +432,7 @@ const Messages = () => {
               <ArrowLeft className="h-5 w-5" />
             </Link>
             <MessageSquare className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">Messages</h1>
+            <h1 className="text-3xl font-bold">My Messages</h1>
           </div>
           
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -582,7 +574,7 @@ const Messages = () => {
                     <Badge variant="secondary">
                       {roleFilter === "all" 
                         ? receivedMessages.length 
-                        : receivedMessages.filter(m => m.sender_role?.toLowerCase() === roleFilter.toLowerCase()).length}
+                        : receivedMessages.filter(m => m.sender_role === roleFilter).length}
                     </Badge>
                     Received Messages
                   </h2>
@@ -603,7 +595,7 @@ const Messages = () => {
                 </div>
                 <div className="space-y-4">
                   {receivedMessages
-                    .filter(msg => roleFilter === "all" || (msg.sender_role?.toLowerCase() === roleFilter.toLowerCase()))
+                    .filter(msg => roleFilter === "all" || msg.sender_role === roleFilter)
                     .map((msg) => (
                     <Card key={msg.id} className="border-primary/30">
                       <CardHeader className="pb-2">
