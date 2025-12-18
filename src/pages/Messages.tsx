@@ -71,6 +71,8 @@ const Messages = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
   const [newMessage, setNewMessage] = useState({
     subject: "",
     message: "",
@@ -297,6 +299,47 @@ const Messages = () => {
     } catch (error) {
       console.error("Error deleting message:", error);
       toast.error("Failed to delete message");
+    }
+  };
+
+  const sendReply = async (messageId: string) => {
+    if (!replyText.trim() || !user) return;
+
+    setSending(true);
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({
+          reply: replyText,
+          replied_by: user.id,
+          replied_at: new Date().toISOString(),
+          is_read: false
+        })
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      // Notify the original sender
+      const message = receivedMessages.find(m => m.id === messageId);
+      if (message) {
+        await supabase.from('notifications').insert({
+          user_id: message.user_id,
+          type: 'message_reply',
+          title: 'New Reply to Your Message',
+          message: `Your message "${message.subject}" has been answered.`,
+          data: { message_id: messageId }
+        });
+      }
+
+      toast.success("Reply sent successfully");
+      setReplyText("");
+      setReplyingTo(null);
+      fetchMessages();
+    } catch (error) {
+      console.error('Error sending reply:', error);
+      toast.error("Failed to send reply");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -533,9 +576,64 @@ const Messages = () => {
                         </p>
                       </CardHeader>
                       <CardContent>
-                        <div className="bg-muted/50 rounded-lg p-3">
+                        <div className="bg-muted/50 rounded-lg p-3 mb-3">
                           <p className="text-sm">{msg.message}</p>
                         </div>
+                        
+                        {msg.reply ? (
+                          <div className="bg-primary/5 border-l-4 border-primary rounded-lg p-3">
+                            <p className="text-xs text-muted-foreground mb-1">Your Reply:</p>
+                            <p className="text-sm">{msg.reply}</p>
+                            {msg.replied_at && (
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {new Date(msg.replied_at).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        ) : replyingTo === msg.id ? (
+                          <div className="space-y-3">
+                            <Textarea
+                              value={replyText}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              placeholder="Type your reply..."
+                              rows={3}
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={() => sendReply(msg.id)}
+                                disabled={sending || !replyText.trim()}
+                                className="gradient-hero text-primary-foreground"
+                              >
+                                {sending ? (
+                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                ) : (
+                                  <Send className="h-4 w-4 mr-2" />
+                                )}
+                                Send Reply
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setReplyingTo(null);
+                                  setReplyText("");
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <Button onClick={() => setReplyingTo(msg.id)}>
+                            <Send className="h-4 w-4 mr-2" />
+                            Reply
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
