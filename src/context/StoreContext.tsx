@@ -100,10 +100,25 @@ type ProductRow = {
   image_url: string | null;
 };
 
+// Load cart from localStorage
+const getStoredCart = (): CartItem => {
+  try {
+    const stored = localStorage.getItem("quickbites_cart");
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+};
+
 export const StoreContextProvider = ({ children }: { children: ReactNode }) => {
   const [foodList, setFoodList] = useState<FoodItem[]>([]);
   const [foodLoading, setFoodLoading] = useState(true);
-  const [cartItems, setCartItems] = useState<CartItem>({});
+  const [cartItems, setCartItems] = useState<CartItem>(getStoredCart);
+
+  // Persist cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("quickbites_cart", JSON.stringify(cartItems));
+  }, [cartItems]);
 
   // Default items (shown even when there are no products in Supabase)
   // New products added by admin will appear after these.
@@ -247,6 +262,7 @@ export const StoreContextProvider = ({ children }: { children: ReactNode }) => {
 
   const clearCart = () => {
     setCartItems({});
+    localStorage.removeItem("quickbites_cart");
   };
 
   const value = useMemo<StoreContextType>(
