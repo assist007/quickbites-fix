@@ -48,8 +48,13 @@ interface Message {
   recipient_id: string | null;
 }
 
-interface Employee {
+interface StaffMember {
   user_id: string;
+  full_name: string | null;
+}
+
+interface OtherUser {
+  id: string;
   full_name: string | null;
 }
 
@@ -57,7 +62,9 @@ const Messages = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [employees, setEmployees] = useState<StaffMember[]>([]);
+  const [admins, setAdmins] = useState<StaffMember[]>([]);
+  const [otherUsers, setOtherUsers] = useState<OtherUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -77,7 +84,7 @@ const Messages = () => {
     if (!user) return;
 
     fetchMessages();
-    fetchEmployees();
+    fetchStaff();
 
     const channel = supabase
       .channel(`user-messages:${user.id}`)
@@ -100,33 +107,73 @@ const Messages = () => {
     };
   }, [user, authLoading, navigate]);
 
-  const fetchEmployees = async () => {
+  const fetchStaff = async () => {
+    if (!user) return;
+    
     try {
-      const { data: roleData, error: roleError } = await supabase
+      // Fetch employees
+      const { data: employeeRoles } = await supabase
         .from("user_roles")
         .select("user_id")
         .eq("role", "employee");
 
-      if (roleError) throw roleError;
+      if (employeeRoles && employeeRoles.length > 0) {
+        const employeeIds = employeeRoles.map(r => r.user_id).filter(id => id !== user.id);
+        if (employeeIds.length > 0) {
+          const { data: employeeProfiles } = await supabase
+            .from("profiles")
+            .select("id, full_name")
+            .in("id", employeeIds);
 
-      if (roleData && roleData.length > 0) {
-        const userIds = roleData.map(r => r.user_id);
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", userIds);
+          setEmployees(
+            (employeeProfiles || []).map(p => ({
+              user_id: p.id,
+              full_name: p.full_name
+            }))
+          );
+        }
+      }
 
-        if (profileError) throw profileError;
+      // Fetch admins (exclude self)
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
 
-        setEmployees(
-          (profileData || []).map(p => ({
-            user_id: p.id,
-            full_name: p.full_name
-          }))
-        );
+      if (adminRoles && adminRoles.length > 0) {
+        const adminIds = adminRoles.map(r => r.user_id).filter(id => id !== user.id);
+        if (adminIds.length > 0) {
+          const { data: adminProfiles } = await supabase
+            .from("profiles")
+            .select("id, full_name")
+            .in("id", adminIds);
+
+          setAdmins(
+            (adminProfiles || []).map(p => ({
+              user_id: p.id,
+              full_name: p.full_name
+            }))
+          );
+        }
+      }
+
+      // Fetch other users (not admin, not employee, not self)
+      const allStaffIds = [
+        ...(employeeRoles || []).map(r => r.user_id),
+        ...(adminRoles || []).map(r => r.user_id),
+        user.id
+      ];
+      
+      const { data: allProfiles } = await supabase
+        .from("profiles")
+        .select("id, full_name");
+
+      if (allProfiles) {
+        const regularUsers = allProfiles.filter(p => !allStaffIds.includes(p.id));
+        setOtherUsers(regularUsers);
       }
     } catch (error) {
-      console.error("Error fetching employees:", error);
+      console.error("Error fetching staff:", error);
     }
   };
 
@@ -155,8 +202,11 @@ const Messages = () => {
       return;
     }
 
-    if (newMessage.recipientType === "employee" && !newMessage.recipientId) {
-      toast.error("Please select an employee");
+    // Validate recipient selection for specific types
+    if ((newMessage.recipientType === "employee" || 
+         newMessage.recipientType === "specific_admin" || 
+         newMessage.recipientType === "user") && !newMessage.recipientId) {
+      toast.error("Please select a recipient");
       return;
     }
 
@@ -166,10 +216,11 @@ const Messages = () => {
         user_id: user.id,
         subject: newMessage.subject,
         message: newMessage.message,
-        recipient_type: newMessage.recipientType,
+        recipient_type: newMessage.recipientType === "specific_admin" ? "admin" : newMessage.recipientType,
       };
 
-      if (newMessage.recipientType === "employee" && newMessage.recipientId) {
+      // Set recipient_id for specific recipients
+      if (newMessage.recipientId) {
         insertData.recipient_id = newMessage.recipientId;
       }
 
@@ -258,22 +309,49 @@ const Messages = () => {
                     onValueChange={(value) => setNewMessage(prev => ({ 
                       ...prev, 
                       recipientType: value,
-                      recipientId: value !== "employee" ? "" : prev.recipientId
+                      recipientId: ""
                     }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select recipient" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="admin">All Admins</SelectItem>
+                      {admins.length > 0 && (
+                        <SelectItem value="specific_admin">Specific Admin</SelectItem>
+                      )}
                       <SelectItem value="all_employees">All Employees</SelectItem>
                       {employees.length > 0 && (
                         <SelectItem value="employee">Specific Employee</SelectItem>
+                      )}
+                      {otherUsers.length > 0 && (
+                        <SelectItem value="user">Other User</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
                 </div>
                 
+                {newMessage.recipientType === "specific_admin" && admins.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Select Admin</label>
+                    <Select
+                      value={newMessage.recipientId}
+                      onValueChange={(value) => setNewMessage(prev => ({ ...prev, recipientId: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose an admin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {admins.map((admin) => (
+                          <SelectItem key={admin.user_id} value={admin.user_id}>
+                            {admin.full_name || "Unnamed Admin"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 {newMessage.recipientType === "employee" && employees.length > 0 && (
                   <div>
                     <label className="block text-sm font-medium mb-2">Select Employee</label>
@@ -288,6 +366,27 @@ const Messages = () => {
                         {employees.map((emp) => (
                           <SelectItem key={emp.user_id} value={emp.user_id}>
                             {emp.full_name || "Unnamed Employee"}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {newMessage.recipientType === "user" && otherUsers.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Select User</label>
+                    <Select
+                      value={newMessage.recipientId}
+                      onValueChange={(value) => setNewMessage(prev => ({ ...prev, recipientId: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a user" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {otherUsers.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>
+                            {u.full_name || "Unnamed User"}
                           </SelectItem>
                         ))}
                       </SelectContent>
