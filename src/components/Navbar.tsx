@@ -218,6 +218,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
 
           {/* Mobile Menu Button */}
           <div className="flex md:hidden items-center gap-2">
+            {user && <NotificationBell />}
             <Button
               variant="ghost"
               size="icon"
