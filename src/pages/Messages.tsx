@@ -91,8 +91,9 @@ const Messages = () => {
     fetchMessages();
     fetchStaff();
 
-    const channel = supabase
-      .channel(`user-messages:${user.id}`)
+    // Subscribe to sent messages
+    const sentChannel = supabase
+      .channel(`user-sent-messages:${user.id}`)
       .on(
         "postgres_changes",
         {
@@ -107,8 +108,26 @@ const Messages = () => {
       )
       .subscribe();
 
+    // Subscribe to received messages
+    const receivedChannel = supabase
+      .channel(`user-received-messages:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "messages",
+          filter: `recipient_id=eq.${user.id}`,
+        },
+        () => {
+          fetchMessages();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(sentChannel);
+      supabase.removeChannel(receivedChannel);
     };
   }, [user, authLoading, navigate]);
 
