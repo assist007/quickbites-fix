@@ -150,6 +150,12 @@ const AdminUserManagement = () => {
   };
 
   const toggleRestriction = async (userId: string, currentStatus: boolean) => {
+    // Prevent self-restriction
+    if (userId === user?.id) {
+      toast.error("You cannot restrict yourself");
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('profiles')
@@ -317,18 +323,20 @@ const AdminUserManagement = () => {
                               <span className="text-xs text-muted-foreground">Cannot modify own roles</span>
                             )}
 
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => toggleRestriction(u.id, u.is_restricted)}
-                              title={u.is_restricted ? "Unrestrict" : "Restrict"}
-                            >
-                              {u.is_restricted ? (
-                                <CheckCircle className="h-4 w-4 text-success" />
-                              ) : (
-                                <Ban className="h-4 w-4 text-destructive" />
-                              )}
-                            </Button>
+                            {u.id !== user?.id && (
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => toggleRestriction(u.id, u.is_restricted)}
+                                title={u.is_restricted ? "Unrestrict" : "Restrict"}
+                              >
+                                {u.is_restricted ? (
+                                  <CheckCircle className="h-4 w-4 text-success" />
+                                ) : (
+                                  <Ban className="h-4 w-4 text-destructive" />
+                                )}
+                              </Button>
+                            )}
 
                             {u.id !== user?.id && (
                               <AlertDialog>
