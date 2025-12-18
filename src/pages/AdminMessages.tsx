@@ -93,22 +93,11 @@ const AdminMessages = () => {
     if (!user) return;
     
     try {
-      let query = supabase
+      // RLS policies handle filtering - admins see admin messages, employees see employee messages
+      const { data, error } = await supabase
         .from('messages')
         .select('*')
         .order('created_at', { ascending: false });
-
-      // Filter messages based on role
-      if (isAdmin) {
-        // Admin sees messages sent to all admins (recipient_id is null) OR specifically to them
-        query = query.eq('recipient_type', 'admin')
-          .or(`recipient_id.is.null,recipient_id.eq.${user.id}`);
-      } else if (isEmployee) {
-        // Employee sees messages sent specifically to them OR to all_employees
-        query = query.or(`recipient_id.eq.${user.id},recipient_type.eq.all_employees`);
-      }
-
-      const { data, error } = await query;
 
       if (error) throw error;
 
