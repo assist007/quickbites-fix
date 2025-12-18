@@ -5,15 +5,38 @@ import { useStore } from "@/context/StoreContext";
 import { Link } from "react-router-dom";
 
 const Cart = () => {
-  const { cartItems, foodList, removeFromCart, getTotalCartAmount, addToCart } = useStore();
+  const {
+    cartItems,
+    foodList,
+    foodLoading,
+    clearCart,
+    removeFromCart,
+    getTotalCartAmount,
+    addToCart,
+  } = useStore();
   const navigate = useNavigate();
   const subtotal = getTotalCartAmount();
   const deliveryFee = subtotal > 0 ? 50 : 0;
   const total = subtotal + deliveryFee;
 
+  const hasAnyCartItems = Object.keys(cartItems).length > 0;
   const cartItemsList = foodList.filter((item) => cartItems[item.id] > 0);
 
-  if (cartItemsList.length === 0) {
+  if (foodLoading && hasAnyCartItems) {
+    return (
+      <main className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
+            <ShoppingBag className="h-12 w-12 text-muted-foreground" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Loading your cart…</h2>
+          <p className="text-muted-foreground">Fetching latest products</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!hasAnyCartItems) {
     return (
       <main className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center animate-fade-in">
@@ -30,6 +53,31 @@ const Cart = () => {
               Browse Menu
             </Button>
           </Link>
+        </div>
+      </main>
+    );
+  }
+
+  if (cartItemsList.length === 0) {
+    return (
+      <main className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center animate-fade-in max-w-md">
+          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
+            <ShoppingBag className="h-12 w-12 text-muted-foreground" />
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Items unavailable</h2>
+          <p className="text-muted-foreground mb-6">
+            Some items in your cart are no longer available. Please clear your cart
+            and add items again.
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <Button variant="outline" onClick={clearCart}>
+              Clear Cart
+            </Button>
+            <Link to="/">
+              <Button className="gradient-hero text-white">Browse Menu</Button>
+            </Link>
+          </div>
         </div>
       </main>
     );
