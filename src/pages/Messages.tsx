@@ -70,10 +70,6 @@ interface StaffMember {
   full_name: string | null;
 }
 
-interface OtherUser {
-  id: string;
-  full_name: string | null;
-}
 
 const Messages = () => {
   const { user, loading: authLoading } = useAuth();
@@ -82,7 +78,7 @@ const Messages = () => {
   const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
   const [employees, setEmployees] = useState<StaffMember[]>([]);
   const [admins, setAdmins] = useState<StaffMember[]>([]);
-  const [otherUsers, setOtherUsers] = useState<OtherUser[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -196,21 +192,6 @@ const Messages = () => {
         }
       }
 
-      // Fetch other users (not admin, not employee, not self)
-      const allStaffIds = [
-        ...(employeeRoles || []).map(r => r.user_id),
-        ...(adminRoles || []).map(r => r.user_id),
-        user.id
-      ];
-      
-      const { data: allProfiles } = await supabase
-        .from("profiles")
-        .select("id, full_name");
-
-      if (allProfiles) {
-        const regularUsers = allProfiles.filter(p => !allStaffIds.includes(p.id));
-        setOtherUsers(regularUsers);
-      }
     } catch (error) {
       console.error("Error fetching staff:", error);
     }
@@ -310,8 +291,7 @@ const Messages = () => {
 
     // Validate recipient selection for specific types
     if ((newMessage.recipientType === "employee" || 
-         newMessage.recipientType === "specific_admin" || 
-         newMessage.recipientType === "user") && !newMessage.recipientId) {
+         newMessage.recipientType === "specific_admin") && !newMessage.recipientId) {
       toast.error("Please select a recipient");
       return;
     }
@@ -475,9 +455,6 @@ const Messages = () => {
                       {employees.length > 0 && (
                         <SelectItem value="employee">Specific Employee</SelectItem>
                       )}
-                      {otherUsers.length > 0 && (
-                        <SelectItem value="user">Other User</SelectItem>
-                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -524,26 +501,6 @@ const Messages = () => {
                   </div>
                 )}
 
-                {newMessage.recipientType === "user" && otherUsers.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Select User</label>
-                    <Select
-                      value={newMessage.recipientId}
-                      onValueChange={(value) => setNewMessage(prev => ({ ...prev, recipientId: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a user" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {otherUsers.map((u) => (
-                          <SelectItem key={u.id} value={u.id}>
-                            {u.full_name || "Unnamed User"}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Subject</label>
