@@ -33,8 +33,7 @@ const AppDownload = () => {
                 </Button>
                 <Button
                   size="lg"
-                  variant="outline"
-                  className="border-white text-white hover:bg-white/10"
+                  className="bg-foreground text-background hover:bg-foreground/90"
                 >
                   <Play className="h-5 w-5 mr-2" />
                   Google Play

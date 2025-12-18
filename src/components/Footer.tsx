@@ -3,7 +3,7 @@ import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react"
 
 const Footer = () => {
   return (
-    <footer id="contact" className="bg-foreground text-background">
+    <footer id="contact" className="bg-card text-card-foreground border-t">
       <div className="container mx-auto px-4 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
           {/* Brand */}
@@ -16,25 +16,25 @@ const Footer = () => {
                 Quick<span className="text-primary">Bite</span>
               </span>
             </Link>
-            <p className="text-background/70 text-sm">
+            <p className="text-muted-foreground text-sm">
               Order your favourite food from the best restaurants near you. Fast delivery, great prices.
             </p>
             <div className="flex gap-3">
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-background/10 hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
+                className="w-10 h-10 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
               >
                 <Facebook className="h-5 w-5" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-background/10 hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
+                className="w-10 h-10 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
               >
                 <Instagram className="h-5 w-5" />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-background/10 hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
+                className="w-10 h-10 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
               >
                 <Twitter className="h-5 w-5" />
               </a>
@@ -49,7 +49,7 @@ const Footer = () => {
                 <li key={link}>
                   <a
                     href="#"
-                    className="text-background/70 hover:text-primary transition-colors text-sm"
+                    className="text-muted-foreground hover:text-primary transition-colors text-sm"
                   >
                     {link}
                   </a>
@@ -66,7 +66,7 @@ const Footer = () => {
                 <li key={link}>
                   <a
                     href="#"
-                    className="text-background/70 hover:text-primary transition-colors text-sm"
+                    className="text-muted-foreground hover:text-primary transition-colors text-sm"
                   >
                     {link}
                   </a>
@@ -79,15 +79,15 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-lg mb-4">Contact Us</h3>
             <ul className="space-y-3">
-              <li className="flex items-center gap-3 text-sm text-background/70">
+              <li className="flex items-center gap-3 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 text-primary" />
                 <span>Mohammadpur, Dhaka</span>
               </li>
-              <li className="flex items-center gap-3 text-sm text-background/70">
+              <li className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4 text-primary" />
                 <span>+8801576545387</span>
               </li>
-              <li className="flex items-center gap-3 text-sm text-background/70">
+              <li className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4 text-primary" />
                 <span>redwanhossen007@gmail.com</span>
               </li>
@@ -95,20 +95,20 @@ const Footer = () => {
           </div>
         </div>
 
-        <hr className="my-8 border-background/10" />
+        <hr className="my-8 border-border" />
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-background/50">
+          <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} QuickBite. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <a href="#" className="text-sm text-background/50 hover:text-primary transition-colors">
+            <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Privacy
             </a>
-            <a href="#" className="text-sm text-background/50 hover:text-primary transition-colors">
+            <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Terms
             </a>
-            <a href="#" className="text-sm text-background/50 hover:text-primary transition-colors">
+            <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Cookies
             </a>
           </div>

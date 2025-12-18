@@ -48,7 +48,7 @@ export const NotificationBell = () => {
 
     fetchNotifications();
 
-    // Real-time subscription
+    // Real-time subscription for INSERT and UPDATE
     const channel = supabase
       .channel('notifications-changes')
       .on(
@@ -63,6 +63,21 @@ export const NotificationBell = () => {
           const newNotification = payload.new as Notification;
           setNotifications((prev) => [newNotification, ...prev]);
           setUnreadCount((prev) => prev + 1);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const updated = payload.new as Notification;
+          setNotifications((prev) =>
+            prev.map((n) => (n.id === updated.id ? updated : n))
+          );
         }
       )
       .subscribe();
@@ -95,6 +110,17 @@ export const NotificationBell = () => {
     setUnreadCount(0);
   };
 
+  const clearAllNotifications = async () => {
+    if (!user) return;
+    await supabase
+      .from('notifications')
+      .delete()
+      .eq('user_id', user.id);
+
+    setNotifications([]);
+    setUnreadCount(0);
+  };
+
   if (!user) return null;
 
   return (
@@ -115,11 +141,18 @@ export const NotificationBell = () => {
       <PopoverContent className="w-80 p-0" align="end">
         <div className="flex items-center justify-between p-4 border-b">
           <h4 className="font-semibold">Notifications</h4>
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead}>
-              Mark all read
-            </Button>
-          )}
+          <div className="flex gap-1">
+            {unreadCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={markAllAsRead}>
+                Mark read
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={clearAllNotifications}>
+                Clear all
+              </Button>
+            )}
+          </div>
         </div>
         <ScrollArea className="h-80">
           {notifications.length === 0 ? (
