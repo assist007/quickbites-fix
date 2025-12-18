@@ -24,8 +24,8 @@ const Hero = () => {
   const featured = fallbackProducts[0];
 
   return (
-    <section className="relative pt-20 pb-16 md:pt-28 md:pb-24 overflow-hidden">
-      <div className="absolute inset-0 gradient-warm -z-10" />
+    <section className="relative pt-20 pb-16 md:pt-28 md:pb-24 overflow-hidden bg-background">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/10 -z-10" />
 
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
