@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Send, Loader2, ArrowLeft, User, Trash2 } from "lucide-react";
+import { MessageSquare, Send, Loader2, ArrowLeft, User, Trash2, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import {
@@ -22,6 +22,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Message {
   id: string;
@@ -36,6 +43,18 @@ interface Message {
   senderRole?: string;
 }
 
+const getRoleBadgeColor = (role: string) => {
+  switch (role) {
+    case 'admin':
+      return 'bg-destructive text-destructive-foreground';
+    case 'employee':
+      return 'bg-blue-500 text-white';
+    case 'user':
+    default:
+      return 'bg-green-500 text-white';
+  }
+};
+
 const AdminMessages = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -46,6 +65,7 @@ const AdminMessages = () => {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
+  const [roleFilter, setRoleFilter] = useState<string>("all");
 
   const canAccess = isAdmin || isEmployee;
   const isLoading = authLoading || adminLoading || employeeLoading;
@@ -193,19 +213,38 @@ const AdminMessages = () => {
     return null;
   }
 
-  const pendingMessages = messages.filter(m => !m.reply);
-  const repliedMessages = messages.filter(m => m.reply);
+  const filteredMessages = roleFilter === "all" 
+    ? messages 
+    : messages.filter(m => m.senderRole === roleFilter);
+  const pendingMessages = filteredMessages.filter(m => !m.reply);
+  const repliedMessages = filteredMessages.filter(m => m.reply);
 
   return (
     <div className="min-h-screen bg-background py-8 pt-24">
       <div className="container mx-auto px-4">
-        <div className="flex items-center gap-3 mb-8">
-          <Link to="/admin" className="text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <MessageSquare className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">Received Messages</h1>
-          <Badge variant="secondary" className="ml-2">{pendingMessages.length} pending</Badge>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <Link to="/admin" className="text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <MessageSquare className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold">Received Messages</h1>
+            <Badge variant="secondary" className="ml-2">{pendingMessages.length} pending</Badge>
+          </div>
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Filter by role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="employee">Employee</SelectItem>
+                <SelectItem value="user">User</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {messages.length === 0 ? (
@@ -233,7 +272,7 @@ const AdminMessages = () => {
                               <span className="text-sm font-bold text-foreground">
                                 {msg.profiles?.full_name || 'Anonymous'}
                               </span>
-                              <Badge variant="outline" className="text-xs capitalize">
+                              <Badge className={`text-xs capitalize ${getRoleBadgeColor(msg.senderRole || 'user')}`}>
                                 {msg.senderRole}
                               </Badge>
                             </div>
@@ -343,7 +382,7 @@ const AdminMessages = () => {
                               <span className="text-sm font-bold text-foreground">
                                 {msg.profiles?.full_name || 'Anonymous'}
                               </span>
-                              <Badge variant="outline" className="text-xs capitalize">
+                              <Badge className={`text-xs capitalize ${getRoleBadgeColor(msg.senderRole || 'user')}`}>
                                 {msg.senderRole}
                               </Badge>
                             </div>

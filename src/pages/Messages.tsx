@@ -48,7 +48,22 @@ interface Message {
   recipient_type: string | null;
   recipient_id: string | null;
   sender_name?: string | null;
+  sender_role?: string | null;
+  recipient_name?: string | null;
+  recipient_role?: string | null;
 }
+
+const getRoleBadgeColor = (role: string) => {
+  switch (role) {
+    case 'admin':
+      return 'bg-destructive text-destructive-foreground';
+    case 'employee':
+      return 'bg-blue-500 text-white';
+    case 'user':
+    default:
+      return 'bg-green-500 text-white';
+  }
+};
 
 interface StaffMember {
   user_id: string;
@@ -213,7 +228,41 @@ const Messages = () => {
         .order("created_at", { ascending: false });
 
       if (sentError) throw sentError;
-      setSentMessages((sentData || []) as Message[]);
+
+      // Get recipient info for sent messages
+      if (sentData && sentData.length > 0) {
+        const recipientIds = [...new Set(sentData.map(m => m.recipient_id).filter(Boolean))];
+        
+        let profiles: { id: string; full_name: string | null }[] = [];
+        let roles: { user_id: string; role: string }[] = [];
+        
+        if (recipientIds.length > 0) {
+          const { data: profilesData } = await supabase
+            .from("profiles")
+            .select("id, full_name")
+            .in("id", recipientIds);
+          profiles = profilesData || [];
+
+          const { data: rolesData } = await supabase
+            .from("user_roles")
+            .select("user_id, role")
+            .in("user_id", recipientIds);
+          roles = rolesData || [];
+        }
+
+        const sentWithRecipientInfo = sentData.map(msg => ({
+          ...msg,
+          recipient_name: msg.recipient_id 
+            ? profiles.find(p => p.id === msg.recipient_id)?.full_name || "Unknown"
+            : msg.recipient_type === 'admin' ? 'All Admins' : msg.recipient_type === 'all_employees' ? 'All Employees' : 'Unknown',
+          recipient_role: msg.recipient_id 
+            ? roles.find(r => r.user_id === msg.recipient_id)?.role || 'user'
+            : msg.recipient_type === 'admin' ? 'admin' : msg.recipient_type === 'all_employees' ? 'employee' : 'user'
+        }));
+        setSentMessages(sentWithRecipientInfo as Message[]);
+      } else {
+        setSentMessages([]);
+      }
 
       // Fetch received messages (where current user is the recipient)
       const { data: receivedData, error: receivedError } = await supabase
@@ -224,7 +273,7 @@ const Messages = () => {
 
       if (receivedError) throw receivedError;
 
-      // Get sender names for received messages
+      // Get sender names and roles for received messages
       if (receivedData && receivedData.length > 0) {
         const senderIds = [...new Set(receivedData.map(m => m.user_id))];
         const { data: profiles } = await supabase
@@ -232,11 +281,17 @@ const Messages = () => {
           .select("id, full_name")
           .in("id", senderIds);
 
-        const messagesWithSenderNames = receivedData.map(msg => ({
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("user_id, role")
+          .in("user_id", senderIds);
+
+        const messagesWithSenderInfo = receivedData.map(msg => ({
           ...msg,
-          sender_name: profiles?.find(p => p.id === msg.user_id)?.full_name || "Unknown"
+          sender_name: profiles?.find(p => p.id === msg.user_id)?.full_name || "Unknown",
+          sender_role: roles?.find(r => r.user_id === msg.user_id)?.role || "user"
         }));
-        setReceivedMessages(messagesWithSenderNames as Message[]);
+        setReceivedMessages(messagesWithSenderInfo as Message[]);
       } else {
         setReceivedMessages([]);
       }
@@ -554,7 +609,13 @@ const Messages = () => {
                         <div className="flex items-start justify-between">
                           <div>
                             <CardTitle className="text-lg">{msg.subject}</CardTitle>
-                            <p className="text-sm text-muted-foreground">From: {msg.sender_name || "Unknown"}</p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground">From:</span>
+                              <span className="text-sm font-bold">{msg.sender_name || "Unknown"}</span>
+                              <Badge className={`text-xs capitalize ${getRoleBadgeColor(msg.sender_role || 'user')}`}>
+                                {msg.sender_role}
+                              </Badge>
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="outline">Received</Badge>
@@ -672,7 +733,16 @@ const Messages = () => {
                     <Card key={msg.id} className={msg.reply && !msg.is_read ? "border-primary" : ""}>
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
-                          <CardTitle className="text-lg">{msg.subject}</CardTitle>
+                          <div>
+                            <CardTitle className="text-lg">{msg.subject}</CardTitle>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-sm text-muted-foreground">To:</span>
+                              <span className="text-sm font-bold">{msg.recipient_name || "Unknown"}</span>
+                              <Badge className={`text-xs capitalize ${getRoleBadgeColor(msg.recipient_role || 'user')}`}>
+                                {msg.recipient_role}
+                              </Badge>
+                            </div>
+                          </div>
                           <div className="flex items-center gap-2">
                             {msg.reply ? (
                               <Badge variant="default" className="bg-success">Replied</Badge>
