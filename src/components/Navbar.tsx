@@ -114,9 +114,9 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button className="gradient-hero text-white">
+                  <Button className="gradient-hero text-primary-foreground">
                     <User className="h-4 w-4 mr-2" />
-                    {user.user_metadata?.full_name?.split(' ')[0] || 'Account'}
+                    {user.user_metadata?.full_name?.split(" ")[0] || "Account"}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
@@ -124,51 +124,51 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                     {user.email}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                  <DropdownMenuItem onClick={() => navigate("/profile")}> 
                     <Settings className="h-4 w-4 mr-2" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/orders')}>
+                  <DropdownMenuItem onClick={() => navigate("/orders")}> 
                     <Package className="h-4 w-4 mr-2" />
                     Order History
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/messages')}>
+                  <DropdownMenuItem onClick={() => navigate("/messages")}> 
                     <MessageSquare className="h-4 w-4 mr-2" />
                     My Messages
                   </DropdownMenuItem>
                   {isAdmin && (
                     <>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <DropdownMenuItem onClick={() => navigate("/admin")}>
                         <Shield className="h-4 w-4 mr-2" />
                         Admin Dashboard
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate('/admin/products')}>
+                      <DropdownMenuItem onClick={() => navigate("/admin/products")}>
                         <Package className="h-4 w-4 mr-2" />
                         Product Management
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate('/admin/users')}>
+                      <DropdownMenuItem onClick={() => navigate("/admin/users")}>
                         <UserCog className="h-4 w-4 mr-2" />
                         User Management
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate('/admin/messages')}>
+                      <DropdownMenuItem onClick={() => navigate("/admin/messages")}>
                         <MessageSquare className="h-4 w-4 mr-2" />
                         Customer Messages
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate('/admin/payments')}>
+                      <DropdownMenuItem onClick={() => navigate("/admin/payments")}>
                         <CreditCard className="h-4 w-4 mr-2" />
                         Payment Verification
                       </DropdownMenuItem>
                     </>
                   )}
                   {isStaff && (
-                    <DropdownMenuItem onClick={() => navigate('/staff')}>
+                    <DropdownMenuItem onClick={() => navigate("/staff")}>
                       <Users className="h-4 w-4 mr-2" />
                       Staff Dashboard
                     </DropdownMenuItem>
                   )}
                   {isDelivery && (
-                    <DropdownMenuItem onClick={() => navigate('/delivery')}>
+                    <DropdownMenuItem onClick={() => navigate("/delivery")}>
                       <Truck className="h-4 w-4 mr-2" />
                       Delivery Dashboard
                     </DropdownMenuItem>
@@ -182,7 +182,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
               </DropdownMenu>
             ) : (
               <Button
-                className="gradient-hero text-white"
+                className="gradient-hero text-primary-foreground"
                 onClick={() => setShowLogin(true)}
               >
                 <User className="h-4 w-4 mr-2" />
@@ -235,6 +235,129 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                   {link.name}
                 </a>
               ))}
+
+              {user && (
+                <div className="pt-2 border-t border-border">
+                  <p className="text-xs font-medium text-muted-foreground py-2">
+                    Dashboard
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate("/profile");
+                    }}
+                    className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                  >
+                    Profile
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate("/orders");
+                    }}
+                    className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                  >
+                    Order History
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      navigate("/messages");
+                    }}
+                    className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                  >
+                    My Messages
+                  </button>
+
+                  {isAdmin && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsOpen(false);
+                          navigate("/admin");
+                        }}
+                        className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                      >
+                        Admin Dashboard
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsOpen(false);
+                          navigate("/admin/products");
+                        }}
+                        className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                      >
+                        Product Management
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsOpen(false);
+                          navigate("/admin/users");
+                        }}
+                        className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                      >
+                        User Management
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsOpen(false);
+                          navigate("/admin/messages");
+                        }}
+                        className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                      >
+                        Customer Messages
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsOpen(false);
+                          navigate("/admin/payments");
+                        }}
+                        className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                      >
+                        Payment Verification
+                      </button>
+                    </>
+                  )}
+
+                  {isStaff && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsOpen(false);
+                        navigate("/staff");
+                      }}
+                      className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                    >
+                      Staff Dashboard
+                    </button>
+                  )}
+
+                  {isDelivery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsOpen(false);
+                        navigate("/delivery");
+                      }}
+                      className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                    >
+                      Delivery Dashboard
+                    </button>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center justify-between pt-4 border-t border-border">
                 <Button
                   variant="outline"
@@ -265,7 +388,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                   </Button>
                 ) : (
                   <Button
-                    className="gradient-hero text-white"
+                    className="gradient-hero text-primary-foreground"
                     size="sm"
                     onClick={() => {
                       setIsOpen(false);
