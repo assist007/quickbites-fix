@@ -193,7 +193,7 @@ const AdminMessages = () => {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <MessageSquare className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">Customer Messages</h1>
+          <h1 className="text-3xl font-bold">Received Messages</h1>
           <Badge variant="secondary" className="ml-2">{pendingMessages.length} pending</Badge>
         </div>
 
@@ -219,7 +219,7 @@ const AdminMessages = () => {
                             <CardTitle className="text-lg">{msg.subject}</CardTitle>
                             <div className="flex items-center gap-2 mt-1">
                               <User className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-sm text-muted-foreground">
+                              <span className="text-sm font-bold text-foreground">
                                 {msg.profiles?.full_name || 'Anonymous'}
                               </span>
                             </div>
@@ -326,7 +326,7 @@ const AdminMessages = () => {
                             <CardTitle className="text-lg">{msg.subject}</CardTitle>
                             <div className="flex items-center gap-2 mt-1">
                               <User className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-sm text-muted-foreground">
+                              <span className="text-sm font-bold text-foreground">
                                 {msg.profiles?.full_name || 'Anonymous'}
                               </span>
                             </div>

@@ -174,7 +174,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate("/admin/messages")}>
                         <MessageSquare className="h-4 w-4 mr-2" />
-                        Customer Messages
+                        Received Messages
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate("/admin/payments")}>
                         <CreditCard className="h-4 w-4 mr-2" />
@@ -340,7 +340,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                         }}
                         className="w-full text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                       >
-                        Customer Messages
+                        Received Messages
                       </button>
                       <button
                         type="button"
