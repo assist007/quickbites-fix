@@ -1,3 +1,4 @@
+// StoreContext - provides food list, cart, and related utilities
 import {
   createContext,
   useContext,
