@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X, ShoppingBag, Sun, Moon, User, LogOut, Package, Settings, Shield, Truck, Users, MessageSquare, CreditCard, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
@@ -29,6 +29,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
   const { hasRole: isStaff } = useStaffCheck();
   const { hasRole: isDelivery } = useDeliveryCheck();
   const navigate = useNavigate();
+  const location = useLocation();
   const cartCount = getTotalCartItems();
 
   const navLinks = [
@@ -40,7 +41,12 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
 
   const handleNavClick = (href: string, isRoute: boolean) => {
     setIsOpen(false);
-    if (!isRoute && href.startsWith("#")) {
+    if (isRoute) {
+      // If already on home page, scroll to top
+      if (location.pathname === href) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else if (href.startsWith("#")) {
       const element = document.querySelector(href);
       element?.scrollIntoView({ behavior: "smooth" });
     }
@@ -72,6 +78,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
                 <Link
                   key={link.name}
                   to={link.href}
+                  onClick={() => handleNavClick(link.href, link.isRoute)}
                   className="text-muted-foreground hover:text-foreground transition-colors font-medium"
                 >
                   {link.name}
