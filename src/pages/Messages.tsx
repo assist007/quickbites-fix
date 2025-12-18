@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useRoleCheck } from "@/hooks/useRoleCheck";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Send, Loader2, Plus, ArrowLeft, Trash2 } from "lucide-react";
+import { MessageSquare, Send, Loader2, Plus, ArrowLeft, Trash2, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -73,6 +74,7 @@ interface StaffMember {
 
 const Messages = () => {
   const { user, loading: authLoading } = useAuth();
+  const { hasRole: isEmployee } = useRoleCheck('employee');
   const navigate = useNavigate();
   const [sentMessages, setSentMessages] = useState<Message[]>([]);
   const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
@@ -84,6 +86,7 @@ const Messages = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const [newMessage, setNewMessage] = useState({
     subject: "",
     message: "",
@@ -245,12 +248,23 @@ const Messages = () => {
         setSentMessages([]);
       }
 
-      // Fetch received messages (where current user is the recipient)
-      const { data: receivedData, error: receivedError } = await supabase
+      // Fetch received messages
+      // For employees, also fetch messages sent to 'all_employees'
+      let receivedQuery = supabase
         .from("messages")
         .select("id, user_id, subject, message, reply, is_read, created_at, replied_at, product_id, recipient_type, recipient_id")
-        .eq("recipient_id", user.id)
         .order("created_at", { ascending: false });
+
+      // Build the filter based on user role
+      if (isEmployee) {
+        // Employee sees messages sent directly to them OR to all_employees
+        receivedQuery = receivedQuery.or(`recipient_id.eq.${user.id},recipient_type.eq.all_employees`);
+      } else {
+        // Regular users only see messages sent directly to them
+        receivedQuery = receivedQuery.eq("recipient_id", user.id);
+      }
+
+      const { data: receivedData, error: receivedError } = await receivedQuery;
 
       if (receivedError) throw receivedError;
 
@@ -555,12 +569,34 @@ const Messages = () => {
             {/* Received Messages */}
             {receivedMessages.length > 0 && (
               <div>
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                  <Badge variant="secondary">{receivedMessages.length}</Badge>
-                  Received Messages
-                </h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <Badge variant="secondary">
+                      {roleFilter === "all" 
+                        ? receivedMessages.length 
+                        : receivedMessages.filter(m => m.sender_role === roleFilter).length}
+                    </Badge>
+                    Received Messages
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-muted-foreground" />
+                    <Select value={roleFilter} onValueChange={setRoleFilter}>
+                      <SelectTrigger className="w-[150px]">
+                        <SelectValue placeholder="Filter by role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Roles</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="employee">Employee</SelectItem>
+                        <SelectItem value="user">User</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <div className="space-y-4">
-                  {receivedMessages.map((msg) => (
+                  {receivedMessages
+                    .filter(msg => roleFilter === "all" || msg.sender_role === roleFilter)
+                    .map((msg) => (
                     <Card key={msg.id} className="border-primary/30">
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
