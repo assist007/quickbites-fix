@@ -74,7 +74,7 @@ interface StaffMember {
 
 const Messages = () => {
   const { user, loading: authLoading } = useAuth();
-  const { hasRole: isEmployee, loading: roleLoading } = useRoleCheck('employee');
+  const { hasRole: isEmployee } = useRoleCheck('employee');
   const navigate = useNavigate();
   const [sentMessages, setSentMessages] = useState<Message[]>([]);
   const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
@@ -101,7 +101,6 @@ const Messages = () => {
     }
 
     if (!user) return;
-    if (roleLoading) return;
 
     fetchMessages();
     fetchStaff();
@@ -123,8 +122,8 @@ const Messages = () => {
       )
       .subscribe();
 
-    // Subscribe to received messages (direct)
-    const receivedDirectChannel = supabase
+    // Subscribe to received messages
+    const receivedChannel = supabase
       .channel(`user-received-messages:${user.id}`)
       .on(
         "postgres_changes",
@@ -140,31 +139,11 @@ const Messages = () => {
       )
       .subscribe();
 
-    // Subscribe to received messages (employees group inbox)
-    const receivedAllEmployeesChannel = isEmployee
-      ? supabase
-          .channel(`user-received-all-employees:${user.id}`)
-          .on(
-            "postgres_changes",
-            {
-              event: "*",
-              schema: "public",
-              table: "messages",
-              filter: `recipient_type=eq.all_employees`,
-            },
-            () => {
-              fetchMessages();
-            }
-          )
-          .subscribe()
-      : null;
-
     return () => {
       supabase.removeChannel(sentChannel);
-      supabase.removeChannel(receivedDirectChannel);
-      if (receivedAllEmployeesChannel) supabase.removeChannel(receivedAllEmployeesChannel);
+      supabase.removeChannel(receivedChannel);
     };
-  }, [user, authLoading, roleLoading, isEmployee, navigate]);
+  }, [user, authLoading, navigate]);
 
   const fetchStaff = async () => {
     if (!user) return;
