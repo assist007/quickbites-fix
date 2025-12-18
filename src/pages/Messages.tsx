@@ -37,6 +37,7 @@ import {
 
 interface Message {
   id: string;
+  user_id: string;
   subject: string;
   message: string;
   reply: string | null;
@@ -46,6 +47,7 @@ interface Message {
   product_id: string | null;
   recipient_type: string | null;
   recipient_id: string | null;
+  sender_name?: string | null;
 }
 
 interface StaffMember {
@@ -61,7 +63,8 @@ interface OtherUser {
 const Messages = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [sentMessages, setSentMessages] = useState<Message[]>([]);
+  const [receivedMessages, setReceivedMessages] = useState<Message[]>([]);
   const [employees, setEmployees] = useState<StaffMember[]>([]);
   const [admins, setAdmins] = useState<StaffMember[]>([]);
   const [otherUsers, setOtherUsers] = useState<OtherUser[]>([]);
@@ -181,14 +184,41 @@ const Messages = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // Fetch sent messages
+      const { data: sentData, error: sentError } = await supabase
         .from("messages")
-        .select("id, subject, message, reply, is_read, created_at, replied_at, product_id, recipient_type, recipient_id")
+        .select("id, user_id, subject, message, reply, is_read, created_at, replied_at, product_id, recipient_type, recipient_id")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setMessages((data || []) as Message[]);
+      if (sentError) throw sentError;
+      setSentMessages((sentData || []) as Message[]);
+
+      // Fetch received messages (where current user is the recipient)
+      const { data: receivedData, error: receivedError } = await supabase
+        .from("messages")
+        .select("id, user_id, subject, message, reply, is_read, created_at, replied_at, product_id, recipient_type, recipient_id")
+        .eq("recipient_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (receivedError) throw receivedError;
+
+      // Get sender names for received messages
+      if (receivedData && receivedData.length > 0) {
+        const senderIds = [...new Set(receivedData.map(m => m.user_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", senderIds);
+
+        const messagesWithSenderNames = receivedData.map(msg => ({
+          ...msg,
+          sender_name: profiles?.find(p => p.id === msg.user_id)?.full_name || "Unknown"
+        }));
+        setReceivedMessages(messagesWithSenderNames as Message[]);
+      } else {
+        setReceivedMessages([]);
+      }
     } catch (error) {
       console.error("Error fetching messages:", error);
     } finally {
@@ -233,7 +263,7 @@ const Messages = () => {
       if (error) throw error;
 
       if (data) {
-        setMessages((prev) => [data as Message, ...prev]);
+        setSentMessages((prev) => [data as Message, ...prev]);
       } else {
         fetchMessages();
       }
@@ -249,7 +279,7 @@ const Messages = () => {
     }
   };
 
-  const deleteMessage = async (messageId: string) => {
+  const deleteMessage = async (messageId: string, isSent: boolean) => {
     try {
       const { error } = await supabase
         .from("messages")
@@ -258,7 +288,11 @@ const Messages = () => {
 
       if (error) throw error;
 
-      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      if (isSent) {
+        setSentMessages((prev) => prev.filter((m) => m.id !== messageId));
+      } else {
+        setReceivedMessages((prev) => prev.filter((m) => m.id !== messageId));
+      }
       toast.success("Message deleted");
     } catch (error) {
       console.error("Error deleting message:", error);
@@ -428,7 +462,7 @@ const Messages = () => {
           </Dialog>
         </div>
 
-        {messages.length === 0 ? (
+        {sentMessages.length === 0 && receivedMessages.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
@@ -443,66 +477,53 @@ const Messages = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {messages.map((msg) => (
-              <Card key={msg.id} className={msg.reply && !msg.is_read ? "border-primary" : ""}>
-                <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg">{msg.subject}</CardTitle>
-                    <div className="flex items-center gap-2">
-                      {msg.reply ? (
-                        <Badge variant="default" className="bg-success">Replied</Badge>
-                      ) : (
-                        <Badge variant="secondary">Pending</Badge>
-                      )}
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Message?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will permanently delete this message and any replies.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteMessage(msg.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(msg.created_at).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-muted/50 rounded-lg p-3 mb-3">
-                    <p className="text-sm">{msg.message}</p>
-                  </div>
-                  
-                  {msg.reply && (
-                    <div className="bg-primary/5 border-l-4 border-primary rounded-lg p-3">
-                      <p className="text-xs text-muted-foreground mb-1">Admin Reply:</p>
-                      <p className="text-sm">{msg.reply}</p>
-                      {msg.replied_at && (
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {new Date(msg.replied_at).toLocaleDateString('en-US', {
+          <div className="space-y-6">
+            {/* Received Messages */}
+            {receivedMessages.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Badge variant="secondary">{receivedMessages.length}</Badge>
+                  Received Messages
+                </h2>
+                <div className="space-y-4">
+                  {receivedMessages.map((msg) => (
+                    <Card key={msg.id} className="border-primary/30">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-lg">{msg.subject}</CardTitle>
+                            <p className="text-sm text-muted-foreground">From: {msg.sender_name || "Unknown"}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">Received</Badge>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Message?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently delete this message.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteMessage(msg.id, false)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(msg.created_at).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric',
@@ -510,12 +531,101 @@ const Messages = () => {
                             minute: '2-digit'
                           })}
                         </p>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                      </CardHeader>
+                      <CardContent>
+                        <div className="bg-muted/50 rounded-lg p-3">
+                          <p className="text-sm">{msg.message}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sent Messages */}
+            {sentMessages.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <Badge variant="secondary">{sentMessages.length}</Badge>
+                  Sent Messages
+                </h2>
+                <div className="space-y-4">
+                  {sentMessages.map((msg) => (
+                    <Card key={msg.id} className={msg.reply && !msg.is_read ? "border-primary" : ""}>
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between">
+                          <CardTitle className="text-lg">{msg.subject}</CardTitle>
+                          <div className="flex items-center gap-2">
+                            {msg.reply ? (
+                              <Badge variant="default" className="bg-success">Replied</Badge>
+                            ) : (
+                              <Badge variant="secondary">Pending</Badge>
+                            )}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Message?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will permanently delete this message and any replies.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteMessage(msg.id, true)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(msg.created_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="bg-muted/50 rounded-lg p-3 mb-3">
+                          <p className="text-sm">{msg.message}</p>
+                        </div>
+                        
+                        {msg.reply && (
+                          <div className="bg-primary/5 border-l-4 border-primary rounded-lg p-3">
+                            <p className="text-xs text-muted-foreground mb-1">Reply:</p>
+                            <p className="text-sm">{msg.reply}</p>
+                            {msg.replied_at && (
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {new Date(msg.replied_at).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
