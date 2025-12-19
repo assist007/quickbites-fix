@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Send, Loader2, Plus, ArrowLeft, Trash2 } from "lucide-react";
+import { MessageSquare, Send, Loader2, Plus, ArrowLeft, Trash2, Mail, MailOpen, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -397,6 +397,63 @@ const Messages = () => {
     }
   };
 
+  const toggleReadStatus = async (messageId: string, currentStatus: boolean, isSent: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({ is_read: !currentStatus })
+        .eq("id", messageId);
+
+      if (error) throw error;
+
+      if (isSent) {
+        setSentMessages((prev) =>
+          prev.map((m) =>
+            m.id === messageId ? { ...m, is_read: !currentStatus } : m
+          )
+        );
+      } else {
+        setReceivedMessages((prev) =>
+          prev.map((m) =>
+            m.id === messageId ? { ...m, is_read: !currentStatus } : m
+          )
+        );
+      }
+      toast.success(currentStatus ? "Marked as unread" : "Marked as read");
+    } catch (error) {
+      console.error("Error updating read status:", error);
+      toast.error("Failed to update read status");
+    }
+  };
+
+  const markAllAsRead = async () => {
+    const unreadSentIds = sentMessages.filter(m => m.reply && !m.is_read).map(m => m.id);
+    const unreadReceivedIds = receivedMessages.filter(m => !m.is_read).map(m => m.id);
+    const allUnreadIds = [...unreadSentIds, ...unreadReceivedIds];
+    
+    if (allUnreadIds.length === 0) return;
+
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({ is_read: true })
+        .in("id", allUnreadIds);
+
+      if (error) throw error;
+
+      setSentMessages((prev) =>
+        prev.map((m) => unreadSentIds.includes(m.id) ? { ...m, is_read: true } : m)
+      );
+      setReceivedMessages((prev) =>
+        prev.map((m) => unreadReceivedIds.includes(m.id) ? { ...m, is_read: true } : m)
+      );
+      toast.success("All messages marked as read");
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+      toast.error("Failed to mark all as read");
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -419,9 +476,27 @@ const Messages = () => {
             </Link>
             <MessageSquare className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold">My Messages</h1>
+            {(() => {
+              const unreadCount = sentMessages.filter(m => m.reply && !m.is_read).length + 
+                                  receivedMessages.filter(m => !m.is_read).length;
+              return unreadCount > 0 ? (
+                <Badge className="bg-blue-500 text-white">{unreadCount} unread</Badge>
+              ) : null;
+            })()}
           </div>
           
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <div className="flex items-center gap-2">
+            {(() => {
+              const unreadCount = sentMessages.filter(m => m.reply && !m.is_read).length + 
+                                  receivedMessages.filter(m => !m.is_read).length;
+              return unreadCount > 0 ? (
+                <Button variant="outline" size="sm" onClick={markAllAsRead}>
+                  <MailOpen className="h-4 w-4 mr-2" />
+                  Mark All Read
+                </Button>
+              ) : null;
+            })()}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gradient-hero text-primary-foreground">
                 <Plus className="h-4 w-4 mr-2" />
@@ -533,7 +608,8 @@ const Messages = () => {
                 </Button>
               </div>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
 
         {sentMessages.length === 0 && receivedMessages.length === 0 ? (
@@ -561,7 +637,7 @@ const Messages = () => {
                 </h2>
                 <div className="space-y-4">
                   {receivedMessages.map((msg) => (
-                    <Card key={msg.id} className="border-primary/30">
+                    <Card key={msg.id} className={`border-primary/30 ${!msg.is_read ? 'bg-blue-50/50 dark:bg-blue-950/20 border-l-4 border-l-blue-500' : ''}`}>
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
                           <div>
@@ -575,7 +651,26 @@ const Messages = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
+                            {!msg.is_read && (
+                              <Badge className="bg-blue-500 text-white">
+                                <Mail className="h-3 w-3 mr-1" />
+                                New
+                              </Badge>
+                            )}
                             <Badge variant="outline">Received</Badge>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => toggleReadStatus(msg.id, msg.is_read, false)}
+                              title={msg.is_read ? "Mark as unread" : "Mark as read"}
+                            >
+                              {msg.is_read ? (
+                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <Eye className="h-4 w-4 text-blue-500" />
+                              )}
+                            </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -687,7 +782,7 @@ const Messages = () => {
                 </h2>
                 <div className="space-y-4">
                   {sentMessages.map((msg) => (
-                    <Card key={msg.id} className={msg.reply && !msg.is_read ? "border-primary" : ""}>
+                    <Card key={msg.id} className={msg.reply && !msg.is_read ? "bg-blue-50/50 dark:bg-blue-950/20 border-l-4 border-l-blue-500" : ""}>
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
                           <div>
@@ -701,10 +796,31 @@ const Messages = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
+                            {msg.reply && !msg.is_read && (
+                              <Badge className="bg-blue-500 text-white">
+                                <Mail className="h-3 w-3 mr-1" />
+                                New Reply
+                              </Badge>
+                            )}
                             {msg.reply ? (
                               <Badge variant="default" className="bg-success">Replied</Badge>
                             ) : (
                               <Badge variant="secondary">Pending</Badge>
+                            )}
+                            {msg.reply && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => toggleReadStatus(msg.id, msg.is_read, true)}
+                                title={msg.is_read ? "Mark as unread" : "Mark as read"}
+                              >
+                                {msg.is_read ? (
+                                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                  <Eye className="h-4 w-4 text-blue-500" />
+                                )}
+                              </Button>
                             )}
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
