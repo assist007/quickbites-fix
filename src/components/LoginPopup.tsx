@@ -82,7 +82,7 @@ const LoginPopup = ({ setShowLogin }: LoginPopupProps) => {
         }
         toast({
           title: "Welcome back!",
-          description: "You're now signed in to QuickBite.",
+          description: "You're now signed in to QuickBites.",
         });
       } else {
         const { error } = await signUp(data.email, data.password, data.name);
@@ -142,8 +142,8 @@ const LoginPopup = ({ setShowLogin }: LoginPopupProps) => {
           <h2 className="text-2xl font-bold">{currState}</h2>
           <p className="text-muted-foreground mt-1">
             {currState === "Login"
-              ? "Welcome back to QuickBite!"
-              : "Create your QuickBite account"}
+              ? "Welcome back to QuickBites!"
+              : "Create your QuickBites account"}
           </p>
         </div>
 

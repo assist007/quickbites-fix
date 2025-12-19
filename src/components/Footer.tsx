@@ -13,7 +13,7 @@ const Footer = () => {
                 <span className="text-xl">🍔</span>
               </div>
               <span className="text-2xl font-bold">
-                Quick<span className="text-primary">Bite</span>
+                Quick<span className="text-primary">Bites</span>
               </span>
             </Link>
             <p className="text-muted-foreground text-sm">
@@ -99,7 +99,7 @@ const Footer = () => {
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} QuickBite. All rights reserved.
+            © {new Date().getFullYear()} QuickBites. All rights reserved.
           </p>
           <div className="flex gap-6">
             <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
