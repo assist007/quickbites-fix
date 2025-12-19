@@ -30,7 +30,7 @@ const OrderHistory = () => {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate("/");
+      navigate('/');
       return;
     }
   }, [user, authLoading, navigate]);
@@ -44,21 +44,18 @@ const OrderHistory = () => {
   const fetchOrders = async () => {
     try {
       const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: false });
+        .from('orders')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      setOrders(
-        (data || []).map((order) => ({
-          ...order,
-          items: order.items as unknown as OrderItem[],
-        }))
-      );
+      setOrders((data || []).map(order => ({
+        ...order,
+        items: order.items as unknown as OrderItem[]
+      })));
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      console.error('Error fetching orders:', error);
     } finally {
       setLoading(false);
     }
@@ -66,35 +63,23 @@ const OrderHistory = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "delivered":
-        return "bg-green-500/10 text-green-600 border-green-500/20";
-      case "out_for_delivery":
-        return "bg-blue-500/10 text-blue-600 border-blue-500/20";
-      case "preparing":
-        return "bg-yellow-500/10 text-yellow-600 border-yellow-500/20";
-      case "confirmed":
-        return "bg-purple-500/10 text-purple-600 border-purple-500/20";
-      case "cancelled":
-        return "bg-red-500/10 text-red-600 border-red-500/20";
-      default:
-        return "bg-gray-500/10 text-gray-600 border-gray-500/20";
+      case 'delivered': return 'bg-green-500/10 text-green-600 border-green-500/20';
+      case 'out_for_delivery': return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
+      case 'preparing': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
+      case 'confirmed': return 'bg-purple-500/10 text-purple-600 border-purple-500/20';
+      case 'cancelled': return 'bg-red-500/10 text-red-600 border-red-500/20';
+      default: return 'bg-gray-500/10 text-gray-600 border-gray-500/20';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "delivered":
-        return "✓";
-      case "out_for_delivery":
-        return "🚚";
-      case "preparing":
-        return "👨‍🍳";
-      case "confirmed":
-        return "✓";
-      case "cancelled":
-        return "✗";
-      default:
-        return "⏳";
+      case 'delivered': return '✓';
+      case 'out_for_delivery': return '🚚';
+      case 'preparing': return '👨‍🍳';
+      case 'confirmed': return '✓';
+      case 'cancelled': return '✗';
+      default: return '⏳';
     }
   };
 
@@ -127,9 +112,7 @@ const OrderHistory = () => {
             <CardContent className="flex flex-col items-center justify-center py-16">
               <Package className="h-16 w-16 text-muted-foreground mb-4" />
               <h2 className="text-xl font-semibold mb-2">No orders yet</h2>
-              <p className="text-muted-foreground">
-                Your order history will appear here
-              </p>
+              <p className="text-muted-foreground">Your order history will appear here</p>
             </CardContent>
           </Card>
         ) : (
@@ -139,34 +122,21 @@ const OrderHistory = () => {
                 <CardHeader className="bg-muted/30 pb-3">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div>
-                      <p className="text-xs text-muted-foreground">
-                        Order ID
-                      </p>
-                      <CardTitle className="text-sm font-mono">
-                        {order.id.slice(0, 8)}...
-                      </CardTitle>
+                      <p className="text-xs text-muted-foreground">Order ID</p>
+                      <CardTitle className="text-sm font-mono">{order.id.slice(0, 8)}...</CardTitle>
                     </div>
-                    <Badge
-                      className={`${getStatusColor(
-                        order.status
-                      )} border w-fit`}
-                    >
-                      {getStatusIcon(order.status)}{" "}
-                      {order.status.replace("_", " ")}
+                    <Badge className={`${getStatusColor(order.status)} border w-fit`}>
+                      {getStatusIcon(order.status)} {order.status.replace('_', ' ')}
                     </Badge>
                   </div>
                 </CardHeader>
-
                 <CardContent className="pt-4">
+                  {/* Order Items */}
                   <div className="space-y-2 mb-4">
                     {(order.items as OrderItem[]).map((item, index) => (
                       <div key={index} className="flex justify-between text-sm">
-                        <span>
-                          {item.name} × {item.quantity}
-                        </span>
-                        <span className="text-muted-foreground">
-                          ৳{(item.price * item.quantity).toFixed(2)}
-                        </span>
+                        <span>{item.name} × {item.quantity}</span>
+                        <span className="text-muted-foreground">${(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
@@ -174,16 +144,12 @@ const OrderHistory = () => {
                   <div className="border-t pt-4 space-y-2">
                     <div className="flex justify-between font-semibold">
                       <span>Total</span>
-                      <span className="text-primary">
-                        ৳{Number(order.total_amount).toFixed(2)}
-                      </span>
+                      <span className="text-primary">${Number(order.total_amount).toFixed(2)}</span>
                     </div>
 
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Clock className="h-4 w-4" />
-                      <span>
-                        {new Date(order.created_at).toLocaleString()}
-                      </span>
+                      <span>{new Date(order.created_at).toLocaleString()}</span>
                     </div>
 
                     {order.delivery_address && (
