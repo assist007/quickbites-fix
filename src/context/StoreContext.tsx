@@ -128,7 +128,7 @@ export const StoreContextProvider = ({ children }: { children: ReactNode }) => {
         id: "default-pizza",
         name: "Margherita Pizza",
         description: "Classic tomato, mozzarella & basil.",
-        price: 12.99,
+        price: 280,
         image: pizzaImg,
         category: "Pizza",
         rating: 4.8,
@@ -137,7 +137,7 @@ export const StoreContextProvider = ({ children }: { children: ReactNode }) => {
         id: "default-salad",
         name: "Fresh Garden Salad",
         description: "Crisp greens with house dressing.",
-        price: 7.49,
+        price: 180,
         image: saladImg,
         category: "Salad",
         rating: 4.7,
@@ -146,7 +146,7 @@ export const StoreContextProvider = ({ children }: { children: ReactNode }) => {
         id: "default-wings",
         name: "Spicy Chicken Wings",
         description: "Crispy wings with a spicy kick.",
-        price: 10.99,
+        price: 250,
         image: wingsImg,
         category: "Appetizer",
         rating: 4.7,
@@ -155,7 +155,7 @@ export const StoreContextProvider = ({ children }: { children: ReactNode }) => {
         id: "default-dessert",
         name: "Chocolate Dessert",
         description: "Rich, sweet and satisfying.",
-        price: 6.25,
+        price: 150,
         image: dessertImg,
         category: "Dessert",
         rating: 4.9,
@@ -164,7 +164,7 @@ export const StoreContextProvider = ({ children }: { children: ReactNode }) => {
         id: "default-bowl",
         name: "Signature Bowl",
         description: "A hearty bowl packed with flavor.",
-        price: 9.75,
+        price: 220,
         image: bowlImg,
         category: "Main",
         rating: 4.6,
@@ -249,7 +249,7 @@ export const StoreContextProvider = ({ children }: { children: ReactNode }) => {
         total += item.price * cartItems[itemId];
       }
     }
-    return total;
+    return parseFloat(total.toFixed(2));
   };
 
   const getTotalCartItems = () => {
