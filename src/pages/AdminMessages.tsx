@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Send, Loader2, ArrowLeft, User, Trash2, Filter } from "lucide-react";
+import { MessageSquare, Send, Loader2, ArrowLeft, User, Trash2, Filter, Eye, EyeOff, Mail, MailOpen } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import {
@@ -190,6 +190,49 @@ const AdminMessages = () => {
     }
   };
 
+  const toggleReadStatus = async (messageId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({ is_read: !currentStatus })
+        .eq("id", messageId);
+
+      if (error) throw error;
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId ? { ...m, is_read: !currentStatus } : m
+        )
+      );
+      toast.success(currentStatus ? "Marked as unread" : "Marked as read");
+    } catch (error) {
+      console.error("Error updating read status:", error);
+      toast.error("Failed to update read status");
+    }
+  };
+
+  const markAllAsRead = async () => {
+    const unreadIds = messages.filter(m => !m.is_read).map(m => m.id);
+    if (unreadIds.length === 0) return;
+
+    try {
+      const { error } = await supabase
+        .from("messages")
+        .update({ is_read: true })
+        .in("id", unreadIds);
+
+      if (error) throw error;
+
+      setMessages((prev) =>
+        prev.map((m) => ({ ...m, is_read: true }))
+      );
+      toast.success("All messages marked as read");
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+      toast.error("Failed to mark all as read");
+    }
+  };
+
   if (isLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -207,6 +250,7 @@ const AdminMessages = () => {
     : messages.filter(m => m.senderRole === roleFilter);
   const pendingMessages = filteredMessages.filter(m => !m.reply);
   const repliedMessages = filteredMessages.filter(m => m.reply);
+  const unreadCount = messages.filter(m => !m.is_read).length;
 
   return (
     <div className="min-h-screen bg-background py-8 pt-24">
@@ -219,20 +263,31 @@ const AdminMessages = () => {
             <MessageSquare className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold">Received Messages</h1>
             <Badge variant="secondary" className="ml-2">{pendingMessages.length} pending</Badge>
+            {unreadCount > 0 && (
+              <Badge className="ml-2 bg-blue-500 text-white">{unreadCount} unread</Badge>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Filter by role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="employee">Employee</SelectItem>
-                <SelectItem value="user">User</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-3">
+            {unreadCount > 0 && (
+              <Button variant="outline" size="sm" onClick={markAllAsRead}>
+                <MailOpen className="h-4 w-4 mr-2" />
+                Mark All Read
+              </Button>
+            )}
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder="Filter by role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="employee">Employee</SelectItem>
+                  <SelectItem value="user">User</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -251,7 +306,7 @@ const AdminMessages = () => {
                 <h2 className="text-xl font-semibold mb-4">Pending Replies</h2>
                 <div className="space-y-4">
                   {pendingMessages.map((msg) => (
-                    <Card key={msg.id} className="border-warning/50">
+                    <Card key={msg.id} className={`border-warning/50 ${!msg.is_read ? 'bg-blue-50/50 dark:bg-blue-950/20 border-l-4 border-l-blue-500' : ''}`}>
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
                           <div>
@@ -267,9 +322,28 @@ const AdminMessages = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
+                            {!msg.is_read && (
+                              <Badge className="bg-blue-500 text-white">
+                                <Mail className="h-3 w-3 mr-1" />
+                                New
+                              </Badge>
+                            )}
                             <Badge variant="outline" className="border-warning text-warning">
                               Awaiting Reply
                             </Badge>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => toggleReadStatus(msg.id, msg.is_read)}
+                              title={msg.is_read ? "Mark as unread" : "Mark as read"}
+                            >
+                              {msg.is_read ? (
+                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <Eye className="h-4 w-4 text-blue-500" />
+                              )}
+                            </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -361,7 +435,7 @@ const AdminMessages = () => {
                 <h2 className="text-xl font-semibold mb-4">Replied Messages</h2>
                 <div className="space-y-4">
                   {repliedMessages.map((msg) => (
-                    <Card key={msg.id}>
+                    <Card key={msg.id} className={`${!msg.is_read ? 'bg-blue-50/50 dark:bg-blue-950/20 border-l-4 border-l-blue-500' : ''}`}>
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between">
                           <div>
@@ -377,7 +451,26 @@ const AdminMessages = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
+                            {!msg.is_read && (
+                              <Badge className="bg-blue-500 text-white">
+                                <Mail className="h-3 w-3 mr-1" />
+                                New
+                              </Badge>
+                            )}
                             <Badge variant="default" className="bg-success">Replied</Badge>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => toggleReadStatus(msg.id, msg.is_read)}
+                              title={msg.is_read ? "Mark as unread" : "Mark as read"}
+                            >
+                              {msg.is_read ? (
+                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                              ) : (
+                                <Eye className="h-4 w-4 text-blue-500" />
+                              )}
+                            </Button>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
