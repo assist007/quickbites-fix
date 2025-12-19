@@ -73,7 +73,7 @@ const Navbar = ({ setShowLogin }: NavbarProps) => {
               <span className="text-xl">🍔</span>
             </div>
             <span className="text-xl md:text-2xl font-bold">
-              Quick<span className="text-primary">Bite</span>
+              Quick<span className="text-primary">Bites</span>
             </span>
           </Link>
 

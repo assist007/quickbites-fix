@@ -16,7 +16,7 @@ const AppDownload = () => {
             {/* Content */}
             <div className="text-center md:text-left">
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Get the QuickBite App
+                Get the QuickBites App
               </h2>
               <p className="text-white/80 mb-8 max-w-md">
                 For a seamless ordering experience, download our mobile app. 
